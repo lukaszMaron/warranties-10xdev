@@ -2,8 +2,8 @@
   "package": "@przeprogramowani/10x-cli",
   "version": "1.26.0",
   "manifestVersion": 3,
-  "lastApplied": "2026-10-03T15:42:25.806Z",
-  "lessonId": "m1l4",
+  "lastApplied": "2026-10-03T16:00:00.572Z",
+  "lessonId": "m1l5",
   "course": "10xdevs4",
   "tool": "copilot",
   "files": {
@@ -145,14 +145,32 @@
         "contentHashes": {
           "SKILL.md": "c2da22384ba61e8ef9c958e003afbf59a022009e3f284f683770ce141fc0d49d"
         }
+      },
+      "10x-infra-research": {
+        "files": [
+          "SKILL.md",
+          "references/agent-friendly-criteria.md"
+        ],
+        "contentHashes": {
+          "SKILL.md": "4bdee609448a701e705507b0b59d1b430f13462740cfc04796cd563112d2c758",
+          "references/agent-friendly-criteria.md": "888b4b712107bf8d8600061e1d907bb1bc14081cb2c3a74be8c7da641a35ab72"
+        }
       }
     },
     "prompts": [
-      "skill-explainer.md"
+      "skill-explainer.md",
+      "m1l5-1-plan-integration.md",
+      "m1l5-2-constrain-approach.md",
+      "m1l5-3-extend-prerequisites.md",
+      "m1l5-4-store-plan.md"
     ],
     "configs": [],
     "promptHashes": {
-      "skill-explainer.md": "32bbe1a7726c3f484994a0a5bfa37789acceeb73bcd14b4fd0661e81db59564c"
+      "skill-explainer.md": "32bbe1a7726c3f484994a0a5bfa37789acceeb73bcd14b4fd0661e81db59564c",
+      "m1l5-1-plan-integration.md": "4ef08fa82af5498b0c37cca9efd2434c9a49e6c9c1ad640c4e348da2c423ade5",
+      "m1l5-2-constrain-approach.md": "b6c16b551c7f07996c2800c3f9b2f2a60929059425a35608c1ceca5966ee44ef",
+      "m1l5-3-extend-prerequisites.md": "d7e20964986be981a46b63346e3623b2f03deff8970dfbc4d60b89d657788e80",
+      "m1l5-4-store-plan.md": "adcc1fc02f2943618fc3c190323b1eef44039727632117acaf4791175dc09c44"
     },
     "configHashes": {}
   },
@@ -441,7 +459,7 @@
       "installedManifestHash": "a4c79d9c5b5425f635f308d8dc65d400b1804ef72e67ae14c6f87e3828eb5765"
     },
     "m1l5": {
-      "appliedAt": "2026-10-03T15:59:24.957Z",
+      "appliedAt": "2026-10-03T16:00:00.572Z",
       "skills": {
         "10x-idea-check": {
           "files": [
@@ -504,18 +522,54 @@
         },
         "10x-health-check": {
           "files": [
+            "SKILL.md",
+            "references/health-check-schema.md"
+          ]
+        },
+        "10x-agents-md": {
+          "files": [
             "SKILL.md"
+          ]
+        },
+        "10x-rule-review": {
+          "files": [
+            "SKILL.md"
+          ]
+        },
+        "10x-lesson": {
+          "files": [
+            "SKILL.md"
+          ]
+        },
+        "10x-infra-research": {
+          "files": [
+            "SKILL.md",
+            "references/agent-friendly-criteria.md"
           ]
         }
       },
-      "prompts": [],
-      "configs": []
+      "prompts": [
+        "skill-explainer.md",
+        "m1l5-1-plan-integration.md",
+        "m1l5-2-constrain-approach.md",
+        "m1l5-3-extend-prerequisites.md",
+        "m1l5-4-store-plan.md"
+      ],
+      "configs": [],
+      "representation": {
+        "lang": "en",
+        "tool": "copilot",
+        "courseRules": true,
+        "rules": true
+      },
+      "installedReleaseId": "r-ecd73d06c33d67314c59bd1383daca77f2a191b553257f3dbd11193c4ccd0577",
+      "installedManifestHash": "a4c79d9c5b5425f635f308d8dc65d400b1804ef72e67ae14c6f87e3828eb5765"
     }
   },
   "managedRules": {
     "path": ".github/copilot-instructions.md",
     "begin": "<!-- BEGIN @przeprogramowani/10x-cli -->",
     "end": "<!-- END @przeprogramowani/10x-cli -->",
-    "upstreamHash": "87af1e4db65242beb0717a6d07c0dfd21d33812e998ffb1fbfc1b60722a8a8f6"
+    "upstreamHash": "6d935a0363837da4215f18f487c3c023b918abe5ee94a1146c429b13a467c556"
   }
 }
