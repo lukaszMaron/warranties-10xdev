@@ -1,7 +1,7 @@
 ---
 starter_id: fastapi
 package_manager: uv
-project_name: pamietaj-gwarancje
+project_name: warranties-10xdev
 hints:
   language_family: multi
   team_size: solo
