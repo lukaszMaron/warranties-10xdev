@@ -197,8 +197,8 @@ There is no existing application data to migrate. This phase creates only the pr
 
 #### Automated
 
-- [ ] 2.1 `uv run pytest tests/test_backup_restore.py` passes for consistent snapshot creation, mocked upload, integrity validation, safe restore, failure handling, and seven-copy retention.
-- [ ] 2.2 `uv run pytest` passes the complete project test suite, including CLI argument and error-exit behavior.
+- [x] 2.1 `uv run pytest tests/test_backup_restore.py` passes for consistent snapshot creation, mocked upload, integrity validation, safe restore, failure handling, and seven-copy retention.
+- [x] 2.2 `uv run pytest` passes the complete project test suite, including CLI argument and error-exit behavior.
 
 #### Manual
 
