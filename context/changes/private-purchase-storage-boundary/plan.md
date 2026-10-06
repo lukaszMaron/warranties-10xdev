@@ -186,12 +186,12 @@ There is no existing application data to migrate. This phase creates only the pr
 
 #### Automated
 
-- [x] 1.1 `uv run pytest tests/test_storage.py` passes for configured paths, invalid paths, database reopen persistence, private document storage, and the 20 MB PDF boundary.
-- [x] 1.2 `uv run pytest` passes the complete project test suite.
+- [x] 1.1 `uv run pytest tests/test_storage.py` passes for configured paths, invalid paths, database reopen persistence, private document storage, and the 20 MB PDF boundary. — 2ce7e9e
+- [x] 1.2 `uv run pytest` passes the complete project test suite. — 2ce7e9e
 
 #### Manual
 
-- [x] 1.3 Configure `WARRANTIES_DATA_DIR` outside the source checkout, restart the application process, and confirm its persistent files remain in that directory and are readable only by the owner/service account.
+- [x] 1.3 Configure `WARRANTIES_DATA_DIR` outside the source checkout, restart the application process, and confirm its persistent files remain in that directory and are readable only by the owner/service account. — 2ce7e9e
 
 ### Phase 2: Daily Off-Host Backup and Restore
 
