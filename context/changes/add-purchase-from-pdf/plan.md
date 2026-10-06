@@ -215,8 +215,8 @@ F-01 creates the SQLite database but no purchase schema. Add the initial purchas
 
 #### Manual
 
-- [ ] 1.3 After F-01 manual verification passes, run the UI and API locally; preview one text-based PDF and one scanned Polish PDF, confirm the PDF is processed locally, and edit an extracted value without it being overwritten.
-- [ ] 1.4 Cause extraction to fail and confirm the user can still enter the required values while retaining the selected PDF for Save.
+- [x] 1.3 After F-01 manual verification passes, run the UI and API locally; preview one text-based PDF and one scanned Polish PDF, confirm the PDF is processed locally, and edit an extracted value without it being overwritten.
+- [x] 1.4 Cause extraction to fail and confirm the user can still enter the required values while retaining the selected PDF for Save.
 
 ### Phase 2: Save Corrected Purchase and Private PDF
 
