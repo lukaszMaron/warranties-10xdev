@@ -210,23 +210,23 @@ F-01 creates the SQLite database but no purchase schema. Add the initial purchas
 
 #### Automated
 
-- [x] 1.1 `uv run pytest tests/test_pdf_extraction.py tests/test_pdf_preview_api.py` passes for text/scanned inputs, field mapping, local OCR adapter behavior, invalid PDFs, the 20 MiB boundary, and non-persistent preview.
-- [x] 1.2 `npm --prefix frontend run build` completes successfully.
+- [x] 1.1 `uv run pytest tests/test_pdf_extraction.py tests/test_pdf_preview_api.py` passes for text/scanned inputs, field mapping, local OCR adapter behavior, invalid PDFs, the 20 MiB boundary, and non-persistent preview. — ee5b0e7
+- [x] 1.2 `npm --prefix frontend run build` completes successfully. — ee5b0e7
 
 #### Manual
 
-- [x] 1.3 After F-01 manual verification passes, run the UI and API locally; preview one text-based PDF and one scanned Polish PDF, confirm the PDF is processed locally, and edit an extracted value without it being overwritten.
-- [x] 1.4 Cause extraction to fail and confirm the user can still enter the required values while retaining the selected PDF for Save.
+- [x] 1.3 After F-01 manual verification passes, run the UI and API locally; preview one text-based PDF and one scanned Polish PDF, confirm the PDF is processed locally, and edit an extracted value without it being overwritten. — ee5b0e7
+- [x] 1.4 Cause extraction to fail and confirm the user can still enter the required values while retaining the selected PDF for Save. — ee5b0e7
 
 ### Phase 2: Save Corrected Purchase and Private PDF
 
 #### Automated
 
-- [ ] 2.1 `uv run pytest tests/test_pdf_purchase_flow.py` passes for corrected-value persistence, PDF storage, validation, and cleanup behavior.
-- [ ] 2.2 `uv run pytest` passes the complete backend test suite.
-- [ ] 2.3 `npm --prefix frontend run build` completes successfully.
+- [x] 2.1 `uv run pytest tests/test_pdf_purchase_flow.py` passes for corrected-value persistence, PDF storage, validation, and cleanup behavior.
+- [x] 2.2 `uv run pytest` passes the complete backend test suite.
+- [x] 2.3 `npm --prefix frontend run build` completes successfully.
 
 #### Manual
 
-- [ ] 2.4 Save a text-based PDF and a scanned Polish PDF after correcting at least one OCR value; restart the app and verify the corrected values and PDF remain in the owner's private profile.
-- [ ] 2.5 Try a PDF larger than 20 MiB and an invalid file; confirm both are rejected without a purchase row or retained document.
+- [x] 2.4 Save a text-based PDF and a scanned Polish PDF after correcting at least one OCR value; restart the app and verify the corrected values and PDF remain in the owner's private profile.
+- [x] 2.5 Try a PDF larger than 20 MiB and an invalid file; confirm both are rejected without a purchase row or retained document.

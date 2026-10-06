@@ -110,7 +110,15 @@ const fields: { name: DraftField; label: string; type: string }[] = [
               </label>
             </div>
             <div class="form-rule"></div>
-            <p class="required-note"><b>*</b> Pole wymagane</p>
+            <div class="form-actions">
+              <p class="required-note"><b>*</b> Pole wymagane</p>
+              <button class="save-button" id="save-button" type="submit" disabled>
+                <svg viewBox="0 0 20 20" aria-hidden="true">
+                  <path d="M10 3v8m0 0 3-3m-3 3L7 8m-3 5.5V16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2.5" />
+                </svg>
+                Zapisz zakup
+              </button>
+            </div>
           </form>
         </section>
       </div>
@@ -120,25 +128,46 @@ const fields: { name: DraftField; label: string; type: string }[] = [
 </html>
 
 <script>
-  import { previewPurchase } from "../../lib/api";
+  import { previewPurchase, savePurchase } from "../../lib/api";
 
   const fileInput = document.querySelector<HTMLInputElement>("#pdf-file");
   const dropTarget = document.querySelector<HTMLElement>("#drop-target");
   const fileName = document.querySelector<HTMLElement>("#file-name");
   const previewButton = document.querySelector<HTMLButtonElement>("#preview-button");
+  const saveButton = document.querySelector<HTMLButtonElement>("#save-button");
   const statusMessage = document.querySelector<HTMLElement>("#status-message");
   const form = document.querySelector<HTMLFormElement>("#purchase-form");
   const editedFields = new Set<string>();
   let hasReceivedSuggestions = false;
+  let selectedFile: File | undefined;
+  let isPreviewing = false;
+  let isSaving = false;
+
+  function canSave() {
+    const productName = form?.elements.namedItem("product_name");
+    return Boolean(
+      fileInput?.files?.[0]
+      && form?.checkValidity()
+      && productName instanceof HTMLInputElement
+      && productName.value.trim(),
+    );
+  }
+
+  function updateSaveButton() {
+    if (saveButton) saveButton.disabled = isPreviewing || isSaving || !canSave();
+  }
 
   function selectFile(file: File | undefined) {
     if (!file || !fileInput || !fileName || !previewButton || !statusMessage) return;
+    if (selectedFile !== file) hasReceivedSuggestions = false;
+    selectedFile = file;
     const transfer = new DataTransfer();
     transfer.items.add(file);
     fileInput.files = transfer.files;
     fileName.textContent = file.name;
     previewButton.disabled = false;
     statusMessage.textContent = "";
+    updateSaveButton();
   }
 
   fileInput?.addEventListener("change", () => {
@@ -146,8 +175,12 @@ const fields: { name: DraftField; label: string; type: string }[] = [
   });
 
   for (const field of form?.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-draft-field]") ?? []) {
-    field.addEventListener("input", () => editedFields.add(field.name));
-    field.addEventListener("change", () => editedFields.add(field.name));
+    const markEdited = () => {
+      editedFields.add(field.name);
+      updateSaveButton();
+    };
+    field.addEventListener("input", markEdited);
+    field.addEventListener("change", markEdited);
   }
 
   dropTarget?.addEventListener("dragover", (event) => {
@@ -165,6 +198,8 @@ const fields: { name: DraftField; label: string; type: string }[] = [
     const file = fileInput?.files?.[0];
     if (!file || !previewButton || !statusMessage) return;
     previewButton.disabled = true;
+    isPreviewing = true;
+    updateSaveButton();
     previewButton.classList.add("is-pending");
     previewButton.setAttribute("aria-busy", "true");
     statusMessage.className = "status-message";
@@ -190,10 +225,42 @@ const fields: { name: DraftField; label: string; type: string }[] = [
       statusMessage.textContent = error instanceof Error ? error.message : "Nie udało się odczytać dokumentu.";
     } finally {
       previewButton.disabled = false;
+      isPreviewing = false;
       previewButton.classList.remove("is-pending");
       previewButton.removeAttribute("aria-busy");
+      updateSaveButton();
     }
   });
+
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const file = fileInput?.files?.[0];
+    if (!file || !form || !statusMessage || !canSave() || isSaving) return;
+    isSaving = true;
+    updateSaveButton();
+    statusMessage.className = "status-message";
+    statusMessage.textContent = "Zapisywanie zakupu…";
+    try {
+      const saved = await savePurchase(file, form);
+      statusMessage.classList.add("is-success");
+      statusMessage.textContent = `Zapisano zakup. Identyfikator: ${saved.purchase_id}`;
+      form.reset();
+      fileInput.value = "";
+      fileName!.textContent = "Upuść PDF tutaj";
+      selectedFile = undefined;
+      hasReceivedSuggestions = false;
+      editedFields.clear();
+      previewButton!.disabled = true;
+    } catch (error) {
+      statusMessage.classList.add("is-error");
+      statusMessage.textContent = error instanceof Error ? error.message : "Nie udało się zapisać zakupu.";
+    } finally {
+      isSaving = false;
+      updateSaveButton();
+    }
+  });
+
+  updateSaveButton();
 </script>
 
 <style>
@@ -273,6 +340,11 @@ const fields: { name: DraftField; label: string; type: string }[] = [
   .field-warning { min-height: 0; color: #9c5b33; font-size: 10px; line-height: 1.35; font-weight: 400; }
   .form-rule { height: 1px; margin: 23px 0 12px; background: var(--line); }
   .required-note { margin: 0; color: #7b8b81; font-size: 11px; }
+  .form-actions { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+  .save-button { display: inline-flex; min-height: 42px; align-items: center; justify-content: center; gap: 8px; padding: 0 15px; border: 0; border-radius: 5px; background: var(--coral); color: white; cursor: pointer; font-size: 12px; font-weight: 700; }
+  .save-button:hover:not(:disabled) { background: #b94e3a; }
+  .save-button:disabled { background: #c3c9c2; cursor: not-allowed; }
+  .save-button svg { width: 17px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
   .page-footer { display: flex; justify-content: space-between; padding: 21px 1px 30px; color: #708078; font-size: 11px; }
   .page-footer span:last-child { color: var(--forest); font-weight: 700; }
   :focus-visible { outline: 3px solid rgb(203 95 73 / 60%); outline-offset: 3px; }
