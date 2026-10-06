@@ -1,2 +1,3 @@
-def main() -> None:
-    print("Hello from warranties-10xdev!")
+from warranties_10xdev.cli import main
+
+__all__ = ["main"]

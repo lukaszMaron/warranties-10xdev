@@ -210,8 +210,8 @@ F-01 creates the SQLite database but no purchase schema. Add the initial purchas
 
 #### Automated
 
-- [ ] 1.1 `uv run pytest tests/test_pdf_extraction.py tests/test_pdf_preview_api.py` passes for text/scanned inputs, field mapping, local OCR adapter behavior, invalid PDFs, the 20 MiB boundary, and non-persistent preview.
-- [ ] 1.2 `npm --prefix frontend run build` completes successfully.
+- [x] 1.1 `uv run pytest tests/test_pdf_extraction.py tests/test_pdf_preview_api.py` passes for text/scanned inputs, field mapping, local OCR adapter behavior, invalid PDFs, the 20 MiB boundary, and non-persistent preview.
+- [x] 1.2 `npm --prefix frontend run build` completes successfully.
 
 #### Manual
 

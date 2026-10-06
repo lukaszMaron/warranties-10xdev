@@ -42,7 +42,7 @@ Gwiazda przewodnia oznacza tu najmniejszy przepływ od początku do końca, któ
 | ID   | Change ID                         | Outcome (user can …)                                       | Prerequisites | PRD refs                                | Status   |
 | ---- | --------------------------------- | ---------------------------------------------------------- | ------------- | --------------------------------------- | -------- |
 | F-01 | private-purchase-storage-boundary | (foundation) ustalić minimalną granicę prywatnego zapisu    | —             | Access Control; Non-Functional Requirements: prywatność danych | in-progress |
-| S-01 | add-purchase-from-pdf              | dodać zakup z PDF, poprawić dane OCR i zapisać              | F-01          | US-01, FR-002, FR-003; Non-Functional Requirements: zachowanie ręcznych poprawek | planning |
+| S-01 | add-purchase-from-pdf              | dodać zakup z PDF, poprawić dane OCR i zapisać              | F-01          | US-01, FR-002, FR-003; Non-Functional Requirements: zachowanie ręcznych poprawek | in-progress |
 | S-02 | add-purchase-manually              | dodać zakup ręcznie i zobaczyć jego status gwarancji        | F-01          | FR-001; Business Logic                  | blocked  |
 | S-03 | search-purchases-by-name           | znaleźć zapisany zakup po nazwie produktu                   | S-01, S-02   | US-01, FR-005; Non-Functional Requirements: wynik wyszukiwania w ciągu 3 sekund | proposed |
 | S-04 | edit-saved-purchase                | edytować zapisany zakup                                     | S-02          | FR-006; Non-Functional Requirements: zachowanie ręcznych poprawek | proposed |
@@ -89,7 +89,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - Które pola są obowiązkowe przy zapisie zakupu? — Owner: user. Block: yes.
 - **Risk:** Błędny odczyt OCR nie może nadpisać poprawek użytkownika ani dopuścić do zapisu bez wymaganych danych.
-- **Status:** planning
+- **Status:** in-progress
 
 ### S-02: Ręczne dodanie zakupu
 
