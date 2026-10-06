@@ -222,11 +222,11 @@ F-01 creates the SQLite database but no purchase schema. Add the initial purchas
 
 #### Automated
 
-- [x] 2.1 `uv run pytest tests/test_pdf_purchase_flow.py` passes for corrected-value persistence, PDF storage, validation, and cleanup behavior.
-- [x] 2.2 `uv run pytest` passes the complete backend test suite.
-- [x] 2.3 `npm --prefix frontend run build` completes successfully.
+- [x] 2.1 `uv run pytest tests/test_pdf_purchase_flow.py` passes for corrected-value persistence, PDF storage, validation, and cleanup behavior. — ebc1085
+- [x] 2.2 `uv run pytest` passes the complete backend test suite. — ebc1085
+- [x] 2.3 `npm --prefix frontend run build` completes successfully. — ebc1085
 
 #### Manual
 
-- [x] 2.4 Save a text-based PDF and a scanned Polish PDF after correcting at least one OCR value; restart the app and verify the corrected values and PDF remain in the owner's private profile.
-- [x] 2.5 Try a PDF larger than 20 MiB and an invalid file; confirm both are rejected without a purchase row or retained document.
+- [x] 2.4 Save a text-based PDF and a scanned Polish PDF after correcting at least one OCR value; restart the app and verify the corrected values and PDF remain in the owner's private profile. — ebc1085
+- [x] 2.5 Try a PDF larger than 20 MiB and an invalid file; confirm both are rejected without a purchase row or retained document. — ebc1085
