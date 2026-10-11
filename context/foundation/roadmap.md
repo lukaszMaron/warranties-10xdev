@@ -41,7 +41,7 @@ Gwiazda przewodnia oznacza tu najmniejszy przepływ od początku do końca, któ
 
 | ID   | Change ID                         | Outcome (user can …)                                       | Prerequisites | PRD refs                                | Status   |
 | ---- | --------------------------------- | ---------------------------------------------------------- | ------------- | --------------------------------------- | -------- |
-| F-01 | private-purchase-storage-boundary | (foundation) ustalić minimalną granicę prywatnego zapisu    | —             | Access Control; Non-Functional Requirements: prywatność danych | in-progress |
+| F-01 | private-purchase-storage-boundary | (foundation) ustalić minimalną granicę prywatnego zapisu    | —             | Access Control; Non-Functional Requirements: prywatność danych | done |
 | S-01 | add-purchase-from-pdf              | dodać zakup z PDF, poprawić dane OCR i zapisać              | F-01          | US-01, FR-002, FR-003; Non-Functional Requirements: zachowanie ręcznych poprawek | done |
 | S-02 | add-purchase-manually              | dodać zakup ręcznie i zobaczyć jego status gwarancji        | F-01          | FR-001; Business Logic                  | blocked  |
 | S-03 | search-purchases-by-name           | znaleźć zapisany zakup po nazwie produktu                   | S-01, S-02   | US-01, FR-005; Non-Functional Requirements: wynik wyszukiwania w ciągu 3 sekund | proposed |
@@ -185,6 +185,5 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 ## Done
 
-(Empty on first generation. `/10x-archive` appends completed items.)
-
+- **F-01: Minimalna granica prywatnego zapisu** — Archived 2026-10-11 → `context/archive/2026-10-06-private-purchase-storage-boundary/`. Lesson: —.
 - **S-01: Użytkownik może dodać zakup z PDF, sprawdzić i poprawić dane odczytane przez OCR przed zapisem oraz zachować te poprawki.** — Archived 2026-10-06 → `context/archive/2026-10-06-add-purchase-from-pdf/`. Lesson: —.
