@@ -1,10 +1,12 @@
 import hashlib
+import ipaddress
 import json
 import os
 import re
 import shutil
 import sqlite3
 import stat
+import sys
 import tempfile
 import zipfile
 from collections.abc import Mapping
@@ -79,7 +81,7 @@ class BackupSettings:
         if endpoint_url is not None:
             parsed_endpoint = urlsplit(endpoint_url)
             if (
-                parsed_endpoint.scheme != "https"
+                not _is_safe_endpoint_scheme(parsed_endpoint)
                 or not parsed_endpoint.netloc
                 or parsed_endpoint.username is not None
                 or parsed_endpoint.password is not None
@@ -87,17 +89,37 @@ class BackupSettings:
                 or parsed_endpoint.fragment
             ):
                 raise BackupConfigurationError(
-                    f"{BACKUP_ENDPOINT_ENV} must be an HTTPS URL without embedded credentials or query data."
+                    f"{BACKUP_ENDPOINT_ENV} must use HTTPS, except for loopback HTTP used for local development, without embedded credentials or query data."
                 )
         for endpoint_name in ("AWS_ENDPOINT_URL", "AWS_ENDPOINT_URL_S3"):
             configured_endpoint = environment.get(endpoint_name, "").strip()
             if configured_endpoint:
                 parsed_endpoint = urlsplit(configured_endpoint)
-                if parsed_endpoint.scheme != "https" or not parsed_endpoint.netloc:
+                if (
+                    not _is_safe_endpoint_scheme(parsed_endpoint)
+                    or not parsed_endpoint.netloc
+                ):
                     raise BackupConfigurationError(
-                        f"{endpoint_name} must be an HTTPS URL."
+                        f"{endpoint_name} must use HTTPS, except for loopback HTTP used for local development."
                     )
         return cls(bucket, region, endpoint_url, prefix)
+
+
+def _is_safe_endpoint_scheme(endpoint: Any) -> bool:
+    if endpoint.scheme == "https":
+        return True
+    if endpoint.scheme != "http":
+        return False
+
+    hostname = endpoint.hostname
+    if hostname is None:
+        return False
+    if hostname.lower() == "localhost":
+        return True
+    try:
+        return ipaddress.ip_address(hostname).is_loopback
+    except ValueError:
+        return False
 
 
 def create_s3_client(settings: BackupSettings) -> Any:
@@ -269,6 +291,10 @@ def restore_from_s3(
     data_root: Path | str,
 ) -> None:
     bucket, key = _parse_backup_reference(backup_reference, settings.bucket)
+    if _key_timestamp(key, settings.prefix) is None:
+        raise BackupConfigurationError(
+            "Backup reference must identify a backup under the configured prefix."
+        )
     response = client.get_object(Bucket=bucket, Key=key)
     body = response["Body"]
     try:
@@ -313,8 +339,12 @@ def prune_old_backups(
     ordered_keys = sorted(
         set(listed), key=lambda item: _key_timestamp(item, prefix) or "", reverse=True
     )
-    valid_keys: list[str] = []
-    for key in ordered_keys:
+    if len(ordered_keys) <= keep:
+        return []
+
+    valid_count = 0
+    cutoff: int | None = None
+    for index, key in enumerate(ordered_keys):
         with tempfile.TemporaryDirectory(prefix="warranties-retention-") as temporary_dir:
             downloaded_path = Path(temporary_dir) / "backup.zip"
             response = client.get_object(Bucket=settings.bucket, Key=key)
@@ -325,15 +355,24 @@ def prune_old_backups(
                 try:
                     validate_backup_archive(downloaded_path)
                 except BackupIntegrityError:
+                    print(
+                        f"Warning: skipping invalid backup archive {key}",
+                        file=sys.stderr,
+                    )
                     continue
-                valid_keys.append(key)
             finally:
                 close = getattr(body, "close", None)
                 if close is not None:
                     close()
+        valid_count += 1
+        if valid_count == keep:
+            cutoff = index + 1
+            break
 
+    if cutoff is None:
+        return []
     deleted: list[str] = []
-    for key in valid_keys[keep:]:
+    for key in ordered_keys[cutoff:]:
         client.delete_object(Bucket=settings.bucket, Key=key)
         deleted.append(key)
     return deleted

@@ -141,6 +141,7 @@ def _current_windows_user_sid() -> str:
             text=True,
             encoding="utf-8",
             errors="replace",
+            timeout=10,
         )
         rows = list(csv.reader(io.StringIO(result.stdout)))
     except (OSError, subprocess.SubprocessError, csv.Error) as exc:
@@ -168,7 +169,7 @@ def _apply_windows_acl(path: Path, owner_sid: str, is_directory: bool) -> None:
     )
     try:
         for command in commands:
-            subprocess.run(command, check=True, capture_output=True, text=True)
+            subprocess.run(command, check=True, capture_output=True, text=True, timeout=10)
     except (OSError, subprocess.SubprocessError) as exc:
         raise StorageConfigurationError(
             f"Could not restrict Windows storage permissions: {path}"

@@ -113,6 +113,8 @@ Add an explicit CLI workflow that snapshots metadata and PDFs together, uploads 
 
 **Contract**: `warranties-10xdev backup` uploads a uniquely dated archive; `warranties-10xdev restore <backup-reference>` restores it to a configured empty data root. Bucket, endpoint, region, and credentials come from environment configuration; credentials are never committed. The remote destination must be private, use TLS, and enable destination-side encryption at rest. The command returns a non-zero exit status on failure so the host scheduler can report it.
 
+> **Addendum (2026-10-11):** For local development smoke tests only, `WARRANTIES_BACKUP_ENDPOINT_URL` may use `http://` when the host is `localhost` or a loopback IP (e.g. a local Moto emulator). All other endpoints must use HTTPS.
+
 #### 3. Retention, scheduling, and recovery runbook
 
 **File**: `src/warranties_10xdev/backup.py`, `docs/operations/private-profile-backup-restore.md`

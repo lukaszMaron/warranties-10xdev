@@ -215,6 +215,47 @@ def test_retention_skips_invalid_archives_and_keeps_them_untouched() -> None:
     assert client.objects[invalid_key] == b"not a zip archive"
 
 
+def test_restore_rejects_key_outside_configured_prefix(tmp_path: Path) -> None:
+    client = StubS3()
+    replacement = tmp_path / "replacement"
+    replacement.mkdir()
+
+    with pytest.raises(backup.BackupConfigurationError, match="configured prefix"):
+        backup.restore_from_s3(
+            client,
+            _settings(),
+            "s3://private-bucket/other-prefix/profile-20260901T020000000000Z-000000000001.zip",
+            replacement,
+        )
+    assert list(replacement.iterdir()) == []
+
+
+def test_retention_warns_about_invalid_archive_among_newest(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    profile = _profile(tmp_path / "source")
+    client = StubS3()
+    base_time = datetime(2026, 9, 20, 2, tzinfo=timezone.utc)
+    keys: list[str] = []
+    for day_offset in range(8):
+        timestamp = base_time + timedelta(days=day_offset)
+        key = (
+            f"{BACKUP_PREFIX}/profile-"
+            f"{timestamp.strftime('%Y%m%dT%H%M%S%fZ')}-{day_offset:012x}.zip"
+        )
+        client.objects[key] = _archive_bytes(
+            profile, tmp_path / f"backup-{day_offset}.zip", timestamp
+        )
+        keys.append(key)
+    client.objects[keys[7]] = b"corrupted newest archive"
+
+    deleted = prune_old_backups(client, _settings())
+
+    assert "skipping invalid backup archive" in capsys.readouterr().err
+    assert deleted == []
+    assert keys[7] in client.objects
+
+
 def test_cli_backup_and_nonzero_failure(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     profile_root = tmp_path / "profile"
     _profile(profile_root)
@@ -263,3 +304,23 @@ def test_backup_settings_reject_insecure_custom_endpoint() -> None:
                 "AWS_ENDPOINT_URL_S3": "http://storage.example.test",
             }
         )
+
+
+@pytest.mark.parametrize(
+    "endpoint",
+    [
+        "http://localhost:5000",
+        "http://127.0.0.1:5000",
+        "http://[::1]:5000",
+    ],
+)
+def test_backup_settings_allow_http_loopback_endpoint(endpoint: str) -> None:
+    settings = BackupSettings.from_environment(
+        {
+            "WARRANTIES_BACKUP_BUCKET": "local-bucket",
+            "WARRANTIES_BACKUP_REGION": "us-east-1",
+            "WARRANTIES_BACKUP_ENDPOINT_URL": endpoint,
+        }
+    )
+
+    assert settings.endpoint_url == endpoint
