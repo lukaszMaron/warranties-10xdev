@@ -30,11 +30,16 @@ const fields: { name: DraftField; label: string; type: string }[] = [
       <div class="page-heading">
         <p class="eyebrow">REJESTR ZAKUPÓW <span> / </span> DODAWANIE</p>
         <h1>Nowy zakup</h1>
-        <p class="heading-copy">Dodaj paragon lub fakturę, a potem sprawdź odczytane dane.</p>
+        <p class="heading-copy">Wybierz ręczne wpisanie danych albo odczyt z dokumentu PDF.</p>
       </div>
 
-      <div class="entry-layout">
-        <section class="upload-panel" aria-labelledby="upload-title">
+      <div class="mode-switch" role="group" aria-label="Sposób dodania zakupu">
+        <button class="mode-button" id="manual-mode" type="button" aria-pressed="false">Ręcznie</button>
+        <button class="mode-button" id="pdf-mode" type="button" aria-pressed="true">Z dokumentu PDF</button>
+      </div>
+
+      <div class="entry-layout" id="entry-layout">
+        <section class="upload-panel" id="upload-panel" aria-labelledby="upload-title">
           <div class="section-heading">
             <span class="step-number">01</span>
             <div>
@@ -69,7 +74,7 @@ const fields: { name: DraftField; label: string; type: string }[] = [
             <span class="privacy-mark" aria-hidden="true">●</span>
             Dokument jest analizowany lokalnie.
           </p>
-          <p class="status-message" id="status-message" role="status" aria-live="polite"></p>
+          <p class="status-message" id="preview-message" role="status" aria-live="polite"></p>
         </section>
 
         <section class="details-panel" aria-labelledby="details-title">
@@ -120,6 +125,17 @@ const fields: { name: DraftField; label: string; type: string }[] = [
               </button>
             </div>
           </form>
+          <p class="status-message" id="save-message" role="status" aria-live="polite"></p>
+          <section class="warranty-result" id="warranty-result" aria-live="polite" hidden>
+            <div>
+              <p class="result-eyebrow">WYNIK</p>
+              <h3>Gwarancja</h3>
+            </div>
+            <p class="result-date" id="result-date"></p>
+            <p class="result-basis" id="result-basis"></p>
+            <p class="result-status" id="result-status"></p>
+            <p class="result-document" id="result-document"></p>
+          </section>
         </section>
       </div>
       <footer class="page-footer"><span>Twoje zakupy pozostają w prywatnym profilu.</span><span>01 / 02</span></footer>
@@ -130,23 +146,30 @@ const fields: { name: DraftField; label: string; type: string }[] = [
 <script>
   import { previewPurchase, savePurchase } from "../../lib/api";
 
+  const manualModeButton = document.querySelector<HTMLButtonElement>("#manual-mode");
+  const pdfModeButton = document.querySelector<HTMLButtonElement>("#pdf-mode");
+  const entryLayout = document.querySelector<HTMLElement>("#entry-layout");
+  const uploadPanel = document.querySelector<HTMLElement>("#upload-panel");
   const fileInput = document.querySelector<HTMLInputElement>("#pdf-file");
   const dropTarget = document.querySelector<HTMLElement>("#drop-target");
   const fileName = document.querySelector<HTMLElement>("#file-name");
   const previewButton = document.querySelector<HTMLButtonElement>("#preview-button");
   const saveButton = document.querySelector<HTMLButtonElement>("#save-button");
-  const statusMessage = document.querySelector<HTMLElement>("#status-message");
+  const previewMessage = document.querySelector<HTMLElement>("#preview-message");
+  const saveMessage = document.querySelector<HTMLElement>("#save-message");
+  const warrantyResult = document.querySelector<HTMLElement>("#warranty-result");
   const form = document.querySelector<HTMLFormElement>("#purchase-form");
   const editedFields = new Set<string>();
   let hasReceivedSuggestions = false;
   let selectedFile: File | undefined;
+  let mode: "manual" | "pdf" = "pdf";
   let isPreviewing = false;
   let isSaving = false;
 
   function canSave() {
     const productName = form?.elements.namedItem("product_name");
     return Boolean(
-      fileInput?.files?.[0]
+      (mode === "manual" || fileInput?.files?.[0])
       && form?.checkValidity()
       && productName instanceof HTMLInputElement
       && productName.value.trim(),
@@ -158,7 +181,16 @@ const fields: { name: DraftField; label: string; type: string }[] = [
   }
 
   function selectFile(file: File | undefined) {
-    if (!file || !fileInput || !fileName || !previewButton || !statusMessage) return;
+    if (!fileInput || !fileName || !previewButton || !previewMessage) return;
+    if (!file) {
+      selectedFile = undefined;
+      hasReceivedSuggestions = false;
+      fileName.textContent = "Upuść PDF tutaj";
+      previewButton.disabled = true;
+      previewMessage.textContent = "";
+      updateSaveButton();
+      return;
+    }
     if (selectedFile !== file) hasReceivedSuggestions = false;
     selectedFile = file;
     const transfer = new DataTransfer();
@@ -166,13 +198,26 @@ const fields: { name: DraftField; label: string; type: string }[] = [
     fileInput.files = transfer.files;
     fileName.textContent = file.name;
     previewButton.disabled = false;
-    statusMessage.textContent = "";
+    previewMessage.textContent = "";
     updateSaveButton();
   }
 
   fileInput?.addEventListener("change", () => {
     selectFile(fileInput.files?.[0]);
   });
+
+  function setMode(nextMode: "manual" | "pdf") {
+    mode = nextMode;
+    const isPdfMode = mode === "pdf";
+    if (manualModeButton) manualModeButton.setAttribute("aria-pressed", String(!isPdfMode));
+    if (pdfModeButton) pdfModeButton.setAttribute("aria-pressed", String(isPdfMode));
+    if (uploadPanel) uploadPanel.hidden = !isPdfMode;
+    entryLayout?.classList.toggle("is-manual", !isPdfMode);
+    updateSaveButton();
+  }
+
+  manualModeButton?.addEventListener("click", () => setMode("manual"));
+  pdfModeButton?.addEventListener("click", () => setMode("pdf"));
 
   for (const field of form?.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-draft-field]") ?? []) {
     const markEdited = () => {
@@ -196,14 +241,14 @@ const fields: { name: DraftField; label: string; type: string }[] = [
 
   previewButton?.addEventListener("click", async () => {
     const file = fileInput?.files?.[0];
-    if (!file || !previewButton || !statusMessage) return;
+    if (mode !== "pdf" || !file || !previewButton || !previewMessage) return;
     previewButton.disabled = true;
     isPreviewing = true;
     updateSaveButton();
     previewButton.classList.add("is-pending");
     previewButton.setAttribute("aria-busy", "true");
-    statusMessage.className = "status-message";
-    statusMessage.textContent = "Odczytywanie dokumentu…";
+    previewMessage.className = "status-message";
+    previewMessage.textContent = "Odczytywanie dokumentu…";
 
     try {
       const draft = await previewPurchase(file);
@@ -218,11 +263,11 @@ const fields: { name: DraftField; label: string; type: string }[] = [
         }
         hasReceivedSuggestions = true;
       }
-      statusMessage.classList.add("is-success");
-      statusMessage.textContent = "Odczyt zakończony. Sprawdź i popraw podpowiedzi.";
+      previewMessage.classList.add("is-success");
+      previewMessage.textContent = "Odczyt zakończony. Sprawdź i popraw podpowiedzi.";
     } catch (error) {
-      statusMessage.classList.add("is-error");
-      statusMessage.textContent = error instanceof Error ? error.message : "Nie udało się odczytać dokumentu.";
+      previewMessage.classList.add("is-error");
+      previewMessage.textContent = error instanceof Error ? error.message : "Nie udało się odczytać dokumentu.";
     } finally {
       previewButton.disabled = false;
       isPreviewing = false;
@@ -234,26 +279,50 @@ const fields: { name: DraftField; label: string; type: string }[] = [
 
   form?.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const file = fileInput?.files?.[0];
-    if (!file || !form || !statusMessage || !canSave() || isSaving) return;
+    const file = mode === "pdf" ? fileInput?.files?.[0] : undefined;
+    if ((mode === "pdf" && !file) || !form || !saveMessage || !canSave() || isSaving) return;
     isSaving = true;
     updateSaveButton();
-    statusMessage.className = "status-message";
-    statusMessage.textContent = "Zapisywanie zakupu…";
+    if (warrantyResult) warrantyResult.hidden = true;
+    saveMessage.className = "status-message";
+    saveMessage.textContent = "Zapisywanie zakupu…";
     try {
-      const saved = await savePurchase(file, form);
-      statusMessage.classList.add("is-success");
-      statusMessage.textContent = `Zapisano zakup. Identyfikator: ${saved.purchase_id}`;
+      const saved = await savePurchase(form, file);
+      const formatDate = (value: string) => new Intl.DateTimeFormat("pl-PL", {
+        dateStyle: "long",
+        timeZone: "UTC",
+      }).format(new Date(`${value}T00:00:00Z`));
+      const basisLabels = {
+        user: "Data podana przez Ciebie",
+        estimate: "Szacowana data końca gwarancji",
+        unknown: "Nie ustalono daty końca gwarancji",
+      } as const;
+      const statusLabels = {
+        active: "Aktywna",
+        expired: "Wygasła",
+        unknown: "Status nieznany",
+      } as const;
+      document.querySelector<HTMLElement>("#result-date")!.textContent = saved.effective_end_date
+        ? `Koniec gwarancji: ${formatDate(saved.effective_end_date)}`
+        : "Brak ustalonej daty końca gwarancji";
+      document.querySelector<HTMLElement>("#result-basis")!.textContent = basisLabels[saved.date_basis];
+      document.querySelector<HTMLElement>("#result-status")!.textContent = statusLabels[saved.status];
+      document.querySelector<HTMLElement>("#result-document")!.textContent = saved.document_ref
+        ? "Dokument PDF zapisany w profilu."
+        : "Zakup zapisany bez dokumentu.";
+      if (warrantyResult) warrantyResult.hidden = false;
+      saveMessage.className = "status-message is-success";
+      saveMessage.textContent = `Zapisano zakup. Identyfikator: ${saved.purchase_id}`;
       form.reset();
-      fileInput.value = "";
-      fileName!.textContent = "Upuść PDF tutaj";
+      if (fileInput) fileInput.value = "";
+      if (fileName) fileName.textContent = "Upuść PDF tutaj";
       selectedFile = undefined;
       hasReceivedSuggestions = false;
       editedFields.clear();
-      previewButton!.disabled = true;
+      if (previewButton) previewButton.disabled = true;
     } catch (error) {
-      statusMessage.classList.add("is-error");
-      statusMessage.textContent = error instanceof Error ? error.message : "Nie udało się zapisać zakupu.";
+      saveMessage.className = "status-message is-error";
+      saveMessage.textContent = error instanceof Error ? error.message : "Nie udało się zapisać zakupu.";
     } finally {
       isSaving = false;
       updateSaveButton();
@@ -261,6 +330,14 @@ const fields: { name: DraftField; label: string; type: string }[] = [
   });
 
   updateSaveButton();
+  for (const button of [manualModeButton, pdfModeButton]) {
+    button?.addEventListener("click", () => {
+      if (warrantyResult) warrantyResult.hidden = true;
+      if (saveMessage) saveMessage.textContent = "";
+    });
+  }
+
+  setMode("pdf");
 </script>
 
 <style>
@@ -301,7 +378,12 @@ const fields: { name: DraftField; label: string; type: string }[] = [
   .eyebrow span { color: #99a99e; padding: 0 7px; }
   h1 { margin: 0; font-family: var(--serif); font-size: 38px; line-height: 1.08; font-weight: 500; }
   .heading-copy { margin: 9px 0 0; color: var(--muted); font-size: 14px; }
+  .mode-switch { display: inline-flex; margin: 0 0 16px; padding: 3px; border: 1px solid #b9cbbd; border-radius: 6px; background: #f6faf4; }
+  .mode-button { min-height: 36px; padding: 0 14px; border: 0; border-radius: 4px; background: transparent; color: #52675b; cursor: pointer; font-size: 12px; font-weight: 650; }
+  .mode-button[aria-pressed="true"] { background: var(--forest); color: white; }
   .entry-layout { display: grid; grid-template-columns: minmax(280px, 0.82fr) minmax(390px, 1.18fr); background: var(--paper); border: 1px solid #d8e2d8; border-radius: 8px; box-shadow: 0 12px 30px rgb(35 62 49 / 7%); }
+  .entry-layout.is-manual { grid-template-columns: minmax(0, 1fr); }
+  .upload-panel[hidden] { display: none; }
   .upload-panel, .details-panel { padding: 30px; }
   .upload-panel { border-right: 1px solid var(--line); }
   .section-heading { display: flex; gap: 13px; align-items: flex-start; margin-bottom: 24px; }
@@ -329,6 +411,15 @@ const fields: { name: DraftField; label: string; type: string }[] = [
   .status-message { min-height: 18px; margin: 12px 0 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
   .status-message.is-success { color: var(--forest); }
   .status-message.is-error { color: #a53f35; }
+  .warranty-result { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 7px 20px; margin-top: 18px; padding: 16px 18px; border-left: 3px solid var(--forest); background: #eff5ed; }
+  .warranty-result[hidden] { display: none; }
+  .result-eyebrow { margin: 0 0 3px; color: var(--forest); font-size: 9px; font-weight: 700; letter-spacing: 1px; }
+  .warranty-result h3 { margin: 0; font-size: 15px; }
+  .result-date, .result-basis, .result-status, .result-document { margin: 0; color: #43584f; font-size: 12px; line-height: 1.45; }
+  .result-date { grid-column: 1; font-weight: 700; }
+  .result-basis { grid-column: 1; }
+  .result-status { grid-column: 2; grid-row: 1 / span 2; color: var(--forest); font-weight: 700; }
+  .result-document { grid-column: 1 / -1; color: var(--muted); font-size: 11px; }
   .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 17px 15px; }
   .field { display: flex; min-width: 0; flex-direction: column; gap: 7px; color: #40564b; font-size: 12px; font-weight: 650; }
   .field-wide { grid-column: 1 / -1; }
@@ -365,5 +456,7 @@ const fields: { name: DraftField; label: string; type: string }[] = [
     .field-grid { grid-template-columns: 1fr; }
     .field-wide { grid-column: auto; }
     .page-footer { gap: 15px; font-size: 10px; }
+    .warranty-result { grid-template-columns: 1fr; }
+    .result-date, .result-basis, .result-status, .result-document { grid-column: 1; grid-row: auto; }
   }
 </style>

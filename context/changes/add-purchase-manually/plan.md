@@ -172,11 +172,11 @@ Warranty date and status calculation is local and constant-time; it adds no OCR 
 
 #### Automated
 
-- [x] 1.1 `uv run pytest tests/test_pdf_purchase_flow.py tests/test_warranty_calculation.py` passes for manual-only persistence, migration preservation of existing records and document references, existing PDF atomic-save behavior, private/business estimates, user override, February 29, inclusive end-date status, and unknown status when no effective date exists.
+- [x] 1.1 `uv run pytest tests/test_pdf_purchase_flow.py tests/test_warranty_calculation.py` passes for manual-only persistence, migration preservation of existing records and document references, existing PDF atomic-save behavior, private/business estimates, user override, February 29, inclusive end-date status, and unknown status when no effective date exists. — 22d5050
 
 #### Manual
 
-- [x] 1.2 On a copy of a profile containing an S-01 purchase, run the migration and confirm the existing purchase data and PDF remain readable and the profile can also store a row without a document reference.
+- [x] 1.2 On a copy of a profile containing an S-01 purchase, run the migration and confirm the existing purchase data and PDF remain readable and the profile can also store a row without a document reference. — 22d5050
 
 ### Phase 2: Shared API and Two-Mode Entry Page
 

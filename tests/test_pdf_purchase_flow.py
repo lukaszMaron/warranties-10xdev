@@ -286,6 +286,9 @@ def test_api_saves_corrected_values_and_private_pdf(
     assert saved["seller"] == "Tool shop"
     assert saved["payment_method"] == "Card"
     assert saved["warranty_end_date"] == "2027-04-03"
+    assert saved["effective_end_date"] == "2027-04-03"
+    assert saved["date_basis"] == "user"
+    assert saved["status"] in {"active", "expired"}
     assert saved["document_ref"].endswith(".pdf")
     assert "url" not in saved and str(data_root) not in response.text
 
@@ -311,14 +314,70 @@ def test_api_accepts_manual_completion_without_preview(
             "product_name": "Manually entered product",
             "purchase_date": "2025-04-03",
             "purchase_type": "private",
+            "warranty_end_date": "",
         },
-        files={"file": ("receipt.pdf", _pdf(), "application/pdf")},
     )
 
     assert response.status_code == 200
-    assert response.json()["product_name"] == "Manually entered product"
-    assert response.json()["seller"] is None
-    assert response.json()["payment_method"] is None
+    saved = response.json()
+    assert saved["product_name"] == "Manually entered product"
+    assert saved["seller"] is None
+    assert saved["payment_method"] is None
+    assert saved["warranty_end_date"] is None
+    assert saved["warranty_end_date"] is None
+    assert saved["document_ref"] is None
+    assert saved["effective_end_date"] == "2027-04-03"
+    assert saved["date_basis"] == "estimate"
+    assert saved["status"] in {"active", "expired"}
+
+
+def test_api_reports_manual_save_failure_without_pdf_message(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    data_root = tmp_path / "profile"
+    data_root.mkdir()
+    monkeypatch.setenv(storage.DATA_DIR_ENV, str(data_root))
+
+    def fail_insert(*args: object, **kwargs: object) -> None:
+        raise sqlite3.IntegrityError("injected insert failure")
+
+    monkeypatch.setattr(purchases, "_insert_purchase", fail_insert)
+    response = client.post(
+        "/api/purchases",
+        data={
+            "product_name": "Manually entered product",
+            "purchase_date": "2025-04-03",
+            "purchase_type": "private",
+        },
+    )
+
+    assert response.status_code == 500
+    assert response.json()["detail"] == "The purchase could not be saved."
+
+
+def test_api_returns_manual_warranty_override_as_user_provided(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    data_root = tmp_path / "profile"
+    data_root.mkdir()
+    monkeypatch.setenv(storage.DATA_DIR_ENV, str(data_root))
+
+    response = client.post(
+        "/api/purchases",
+        data={
+            "product_name": "Manually entered product",
+            "purchase_date": "2025-04-03",
+            "purchase_type": "private",
+            "warranty_end_date": "2099-08-09",
+        },
+    )
+
+    assert response.status_code == 200
+    saved = response.json()
+    assert saved["warranty_end_date"] == "2099-08-09"
+    assert saved["effective_end_date"] == "2099-08-09"
+    assert saved["date_basis"] == "user"
+    assert saved["status"] == "active"
 
 
 def test_api_rejects_missing_required_fields_and_corrupt_pdf(
@@ -331,7 +390,6 @@ def test_api_rejects_missing_required_fields_and_corrupt_pdf(
     missing_field = client.post(
         "/api/purchases",
         data={"product_name": "Drill", "purchase_type": "private"},
-        files={"file": ("receipt.pdf", _pdf(), "application/pdf")},
     )
     corrupt_pdf = client.post(
         "/api/purchases",

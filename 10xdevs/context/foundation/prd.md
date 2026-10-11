@@ -82,9 +82,9 @@ Autor pomysłu — osoba prywatna posiadająca narzędzia lub sprzęt. Sięga po
 
 ## Business Logic
 
-Aplikacja domyślnie wyznacza koniec gwarancji na dwa lata od daty zakupu prywatnego lub rok od daty zakupu firmowego, ale inny, w tym przedłużony, termin podany przez użytkownika na podstawie dokumentu zastępuje wartość domyślną.
+Aplikacja wyznacza szacowaną datę końca gwarancji na dwa lata kalendarzowe od daty zakupu prywatnego lub rok kalendarzowy od daty zakupu firmowego. Szacunek nie potwierdza rzeczywistych warunków gwaranta. Inny, w tym przedłużony, termin podany przez użytkownika na podstawie dokumentu zastępuje szacunek.
 
-Reguła wykorzystuje datę zakupu, rodzaj zakupu wybrany przez użytkownika oraz ewentualny inny lub przedłużony termin z dokumentu, który użytkownik może wpisać albo poprawić. Wynikiem jest data końca gwarancji i jej status; użytkownik widzi je w aplikacji, a gwarancje wkrótce wygasające także na ekranie głównym.
+Reguła wykorzystuje datę zakupu, rodzaj zakupu wybrany przez użytkownika oraz ewentualny inny lub przedłużony termin z dokumentu, który użytkownik może wpisać albo poprawić. Data końca jest aktywna włącznie z tym dniem, a status zmienia się na wygasły następnego dnia. Jeśli daty końca nie można ustalić, status jest nieznany. Dla zakupu z 29 lutego, gdy rok docelowy nie jest przestępny, szacowany termin przypada 28 lutego. Użytkownik widzi datę, jej źródło i status; gwarancje wkrótce wygasające także pojawiają się na ekranie głównym.
 
 ## Access Control
 
@@ -100,6 +100,5 @@ Na początku aplikacja ma lokalny profil. W przyszłości użytkownicy będą mi
 
 ## Open Questions
 
-1. **Które pola są obowiązkowe przy zapisie zakupu?** Owner: user.
-2. **Jaki przedział czasu oznacza, że gwarancja wkrótce wygasa?** Owner: user.
-3. **Jaki orientacyjny ruch i wolumen przechowywanych dokumentów należy zakładać?** Owner: user.
+1. **Jaki przedział czasu oznacza, że gwarancja wkrótce wygasa?** Owner: user.
+2. **Jaki orientacyjny ruch i wolumen przechowywanych dokumentów należy zakładać?** Owner: user.

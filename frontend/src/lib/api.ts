@@ -20,7 +20,10 @@ export interface SavedPurchase {
   seller: string | null;
   payment_method: string | null;
   warranty_end_date: string | null;
-  document_ref: string;
+  document_ref: string | null;
+  effective_end_date: string | null;
+  date_basis: "user" | "estimate" | "unknown";
+  status: "active" | "expired" | "unknown";
   created_at: string;
 }
 
@@ -42,11 +45,11 @@ export async function previewPurchase(file: File): Promise<PreviewDraft> {
 }
 
 export async function savePurchase(
-  file: File,
   form: HTMLFormElement,
+  file?: File,
 ): Promise<SavedPurchase> {
   const body = new FormData(form);
-  body.set("file", file);
+  if (file) body.set("file", file);
   const response = await fetch(`${apiOrigin}/api/purchases`, {
     method: "POST",
     body,

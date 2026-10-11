@@ -13,7 +13,7 @@ archived_at: null
 
 - A commercial guarantee is voluntary and its period is set by the guarantor. If no period is specified, UOKiK and the European Consumer Centre state that it is presumed to last two years from delivery.
 - The seller's statutory responsibility for non-conformity is a separate protection, generally lasting two years from delivery. It should not be conflated with a product's commercial guarantee.
-- Product implication: capture the commercial guarantee terms or end date from the user or supporting document; do not present statutory seller responsibility as the guarantee end date. The required-fields decision remains open.
+- Product implication: capture the commercial guarantee terms or end date from the user or supporting document; do not present statutory seller responsibility as the guarantee end date.
 
 Sources:
 - UOKiK, [Gwarancja](https://prawakonsumenta.uokik.gov.pl/reklamacja/gwarancja/)
@@ -26,3 +26,9 @@ Sources:
 - **Verification:** `uv run pytest tests/test_pdf_purchase_flow.py` — 11 passed.
 
 Source: UOKiK, [Gwarancja](https://prawakonsumenta.uokik.gov.pl/reklamacja/gwarancja/).
+
+### S-02 decisions confirmed during planning
+
+- Required fields: product name, purchase date, and purchase type. Seller, payment method, and an explicit warranty end date are optional.
+- The PRD's private/business duration formula is an estimate; a user-entered end date overrides it.
+- The end date is active through that day and expires the next day. February 29 maps to February 28 in a non-leap target year; status is unknown when no effective date can be established.

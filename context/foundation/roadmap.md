@@ -3,7 +3,7 @@ project: PamiętajGwarancje
 version: 1
 status: draft
 created: 2026-10-06
-updated: 2026-10-06
+updated: 2026-10-11
 prd_version: 1
 main_goal: speed
 top_blocker: decisions
@@ -43,7 +43,7 @@ Gwiazda przewodnia oznacza tu najmniejszy przepływ od początku do końca, któ
 | ---- | --------------------------------- | ---------------------------------------------------------- | ------------- | --------------------------------------- | -------- |
 | F-01 | private-purchase-storage-boundary | (foundation) ustalić minimalną granicę prywatnego zapisu    | —             | Access Control; Non-Functional Requirements: prywatność danych | done |
 | S-01 | add-purchase-from-pdf              | dodać zakup z PDF, poprawić dane OCR i zapisać              | F-01          | US-01, FR-002, FR-003; Non-Functional Requirements: zachowanie ręcznych poprawek | done |
-| S-02 | add-purchase-manually              | dodać zakup ręcznie i zobaczyć jego status gwarancji        | F-01          | FR-001; Business Logic                  | blocked  |
+| S-02 | add-purchase-manually              | dodać zakup ręcznie i zobaczyć jego status gwarancji        | F-01          | FR-001; Business Logic                  | in-progress |
 | S-03 | search-purchases-by-name           | znaleźć zapisany zakup po nazwie produktu                   | S-01, S-02   | US-01, FR-005; Non-Functional Requirements: wynik wyszukiwania w ciągu 3 sekund | proposed |
 | S-04 | edit-saved-purchase                | edytować zapisany zakup                                     | S-02          | FR-006; Non-Functional Requirements: zachowanie ręcznych poprawek | proposed |
 | S-05 | delete-purchase-or-document        | usunąć zapisany zakup albo dokument                        | S-01, S-02   | FR-007; Access Control                  | proposed |
@@ -86,8 +86,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Prerequisites:** F-01
 - **Parallel with:** S-02
 - **Blockers:** —
-- **Unknowns:**
-  - Które pola są obowiązkowe przy zapisie zakupu? — Owner: user. Block: yes.
+- **Unknowns:** —
 - **Risk:** Błędny odczyt OCR nie może nadpisać poprawek użytkownika ani dopuścić do zapisu bez wymaganych danych.
 - **Status:** in-progress
 
@@ -99,10 +98,9 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Prerequisites:** F-01
 - **Parallel with:** S-01
 - **Blockers:** —
-- **Unknowns:**
-  - Które pola są obowiązkowe przy zapisie zakupu? — Owner: user. Block: yes.
-- **Risk:** Domyślny termin zależy od rodzaju zakupu, a termin podany przez użytkownika ma go zastąpić.
-- **Status:** blocked
+- **Unknowns:** —
+- **Risk:** Domyślny termin zależy od rodzaju zakupu i jest szacunkiem; rzeczywiste warunki gwaranta mogą się różnić, a termin podany przez użytkownika go zastępuje.
+- **Status:** in-progress
 
 ### S-03: Wyszukiwanie po nazwie produktu
 
@@ -158,8 +156,8 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | Roadmap ID | Change ID                         | Suggested issue title                        | Ready for `/10x-plan` | Notes                                      |
 | ---------- | --------------------------------- | -------------------------------------------- | --------------------- | ------------------------------------------ |
 | F-01       | private-purchase-storage-boundary | Ustalić minimalną granicę prywatnego zapisu   | no                    | Najpierw rozstrzygnąć pytanie o wolumen.   |
-| S-01       | add-purchase-from-pdf              | Dodać zakup z PDF z korektą OCR               | no                    | Wymaga F-01 i decyzji o wymaganych polach. |
-| S-02       | add-purchase-manually              | Dodać zakup ręcznie i pokazać status          | no                    | Wymaga F-01 i decyzji o wymaganych polach. |
+| S-01       | add-purchase-from-pdf              | Dodać zakup z PDF z korektą OCR               | no                    | Wymaga F-01. Wymagane pola potwierdzone przy planowaniu S-02. |
+| S-02       | add-purchase-manually              | Dodać zakup ręcznie i pokazać status          | no                    | Wymaga F-01; wymagane pola i reguły daty potwierdzono podczas planowania. |
 | S-03       | search-purchases-by-name           | Wyszukiwać zakupy po nazwie produktu          | no                    | Czeka na S-01 i S-02.                     |
 | S-04       | edit-saved-purchase                | Edytować zapisany zakup                       | no                    | Czeka na S-02.                            |
 | S-05       | delete-purchase-or-document        | Usuwać zakup lub dokument                     | no                    | Czeka na S-01 i S-02.                     |
@@ -167,9 +165,8 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 ## Open Roadmap Questions
 
-1. **Które pola są obowiązkowe przy zapisie zakupu?** — Owner: user. Block: S-01, S-02.
-2. **Jaki przedział czasu oznacza, że gwarancja wkrótce wygasa?** — Owner: user. Block: S-06.
-3. **Jaki orientacyjny ruch i wolumen przechowywanych dokumentów należy zakładać?** — Owner: user. Block: F-01.
+1. **Jaki przedział czasu oznacza, że gwarancja wkrótce wygasa?** — Owner: user. Block: S-06.
+2. **Jaki orientacyjny ruch i wolumen przechowywanych dokumentów należy zakładać?** — Owner: user. Block: F-01.
 
 ## Parked
 

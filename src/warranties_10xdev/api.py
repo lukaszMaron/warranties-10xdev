@@ -9,6 +9,7 @@ from warranties_10xdev.purchases import (
     PurchaseInput,
     PurchaseSaveError,
     PurchaseValidationError,
+    calculate_warranty,
     save_purchase as persist_purchase,
 )
 from warranties_10xdev.storage import (
@@ -49,29 +50,27 @@ async def preview_purchase(file: UploadFile = File(...)) -> dict[str, object]:
 
 @app.post("/api/purchases")
 async def save_purchase(
-    file: UploadFile = File(...),
+    file: UploadFile | None = File(None),
     product_name: str = Form(...),
     purchase_date: date = Form(...),
     purchase_type: Literal["private", "business"] = Form(...),
     seller: str | None = Form(None),
     payment_method: str | None = Form(None),
     warranty_end_date: date | None = Form(None),
-) -> dict[str, str | None]:
-    pdf_bytes = await _read_bounded_upload(file)
+) -> dict[str, object]:
+    pdf_bytes = await _read_bounded_upload(file) if file is not None else None
+    purchase = PurchaseInput(
+        product_name=product_name,
+        purchase_date=purchase_date,
+        purchase_type=purchase_type,
+        seller=seller,
+        payment_method=payment_method,
+        warranty_end_date=warranty_end_date,
+    )
     try:
+        warranty = calculate_warranty(purchase)
         profile = ProfileStorage.from_environment()
-        saved = persist_purchase(
-            profile,
-            PurchaseInput(
-                product_name=product_name,
-                purchase_date=purchase_date,
-                purchase_type=purchase_type,
-                seller=seller,
-                payment_method=payment_method,
-                warranty_end_date=warranty_end_date,
-            ),
-            pdf_bytes,
-        )
+        saved = persist_purchase(profile, purchase, pdf_bytes)
     except PurchaseValidationError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except StorageConfigurationError as exc:
@@ -80,7 +79,16 @@ async def save_purchase(
         ) from exc
     except PurchaseSaveError as exc:
         raise HTTPException(
-            status_code=500,
-            detail="The purchase and its PDF could not be saved together.",
+            status_code=500, detail=str(exc)
         ) from exc
-    return asdict(saved)
+    response = asdict(saved)
+    response.update(
+        effective_end_date=(
+            warranty.effective_end_date.isoformat()
+            if warranty.effective_end_date is not None
+            else None
+        ),
+        date_basis=warranty.date_basis,
+        status=warranty.status,
+    )
+    return response
