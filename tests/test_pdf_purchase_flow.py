@@ -100,6 +100,104 @@ def test_save_persists_corrected_values_and_private_pdf_after_reopen(
     assert not list(reopened.data_root.glob(".purchase-*.tmp"))
 
 
+def test_save_purchase_without_pdf_creates_only_a_database_row(tmp_path: Path) -> None:
+    profile = _profile(tmp_path / "profile")
+
+    saved = save_purchase(profile, _purchase())
+
+    assert saved.document_ref is None
+    with profile.connect() as connection:
+        row = connection.execute(
+            "SELECT product_name, document_ref FROM purchase WHERE purchase_id = ?",
+            (saved.purchase_id,),
+        ).fetchone()
+        document_column = next(
+            column
+            for column in connection.execute("PRAGMA table_info(purchase)").fetchall()
+            if column[1] == "document_ref"
+        )
+    assert row == ("Corrected drill name", None)
+    assert document_column[3] == 0
+    assert list(profile.documents_dir.iterdir()) == []
+    assert not list(profile.data_root.glob(".purchase-*.tmp"))
+
+
+def test_save_migrates_legacy_purchase_table_without_changing_pdf_or_values(
+    tmp_path: Path,
+) -> None:
+    profile = _profile(tmp_path / "profile")
+    document_ref = "s01-purchase.pdf"
+    original_pdf = _pdf()
+    (profile.documents_dir / document_ref).write_bytes(original_pdf)
+    with profile.connect() as connection:
+        connection.execute(
+            """
+            CREATE TABLE purchase (
+                purchase_id TEXT PRIMARY KEY,
+                product_name TEXT NOT NULL,
+                purchase_date TEXT NOT NULL,
+                purchase_type TEXT NOT NULL CHECK (purchase_type IN ('private', 'business')),
+                seller TEXT,
+                payment_method TEXT,
+                warranty_end_date TEXT,
+                document_ref TEXT NOT NULL UNIQUE,
+                created_at TEXT NOT NULL
+            )
+            """
+        )
+        connection.execute(
+            """
+            INSERT INTO purchase VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                "s01-purchase",
+                "Existing drill",
+                "2024-03-04",
+                "business",
+                "Existing seller",
+                "Bank transfer",
+                "2026-03-04",
+                document_ref,
+                "2024-03-04T12:30:00+00:00",
+            ),
+        )
+
+    manual = save_purchase(profile, _purchase(), None)
+    second_manual = save_purchase(profile, _purchase(product_name="Second manual"))
+
+    with profile.connect() as connection:
+        existing = connection.execute(
+            "SELECT purchase_id, product_name, purchase_date, purchase_type, seller, "
+            "payment_method, warranty_end_date, document_ref, created_at "
+            "FROM purchase WHERE purchase_id = 's01-purchase'"
+        ).fetchone()
+        references = connection.execute(
+            "SELECT document_ref FROM purchase WHERE document_ref IS NOT NULL"
+        ).fetchall()
+        with pytest.raises(sqlite3.IntegrityError):
+            connection.execute(
+                "UPDATE purchase SET document_ref = ? WHERE purchase_id = ?",
+                (document_ref, manual.purchase_id),
+            )
+
+    assert existing == (
+        "s01-purchase",
+        "Existing drill",
+        "2024-03-04",
+        "business",
+        "Existing seller",
+        "Bank transfer",
+        "2026-03-04",
+        document_ref,
+        "2024-03-04T12:30:00+00:00",
+    )
+    assert references == [(document_ref,)]
+    assert manual.document_ref is None
+    assert second_manual.document_ref is None
+    assert (profile.documents_dir / document_ref).read_bytes() == original_pdf
+    assert sorted(path.name for path in profile.documents_dir.iterdir()) == [document_ref]
+
+
 @pytest.mark.parametrize(
     ("overrides", "message"),
     [
