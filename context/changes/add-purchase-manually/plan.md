@@ -182,8 +182,8 @@ Warranty date and status calculation is local and constant-time; it adds no OCR 
 
 #### Automated
 
-- [ ] 2.1 `uv run pytest` passes the backend suite, including manual no-PDF requests, nullable document responses, warranty results, migration preservation, and the existing PDF correction/save flow.
-- [ ] 2.2 `npm --prefix frontend run build` completes successfully with both entry modes.
+- [x] 2.1 `uv run pytest` passes the backend suite, including manual no-PDF requests, nullable document responses, warranty results, migration preservation, and the existing PDF correction/save flow.
+- [x] 2.2 `npm --prefix frontend run build` completes successfully with both entry modes.
 
 #### Manual
 
