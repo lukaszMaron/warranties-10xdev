@@ -204,4 +204,4 @@ There is no existing application data to migrate. This phase creates only the pr
 
 #### Manual
 
-- [ ] 2.3 Configure a private S3-compatible destination and a daily host schedule; create a backup, restore it into a clean replacement data root, and verify the database and every PDF match the source snapshot.
+- [x] 2.3 Configure a private S3-compatible destination and a daily host schedule; create a backup, restore it into a clean replacement data root, and verify the database and every PDF match the source snapshot.
