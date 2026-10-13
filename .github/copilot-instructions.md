@@ -61,3 +61,7 @@ Demonstrated on a Space Explorers example, not the SRS path. It is an escape hat
 Skills must not write to `context/archive/`. Archived changes are immutable; if a resolved target path starts with `context/archive/`, abort with: "This change is archived. Open a new change with `/10x-new` instead."
 
 <!-- END @przeprogramowani/10x-cli -->
+
+## Purchase-entry UI contract
+
+Use `frontend/src/styles/tokens.css` for semantic design tokens and check `frontend/src/components/ui/` before creating controls. Add missing controls there as local Astro components, and use semantic tokens instead of literal colors or arbitrary values. Review interaction states at `frontend/src/pages/purchases/new-states.astro`.

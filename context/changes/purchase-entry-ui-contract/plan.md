@@ -203,21 +203,21 @@ No data or API migration is required. Existing purchase records and PDF handling
 
 #### Automated
 
-- [x] 2.1 `npm --prefix frontend run build` completes with the Astro components and refactored view.
-- [x] 2.2 The post-refactor candidate scan on `new.astro` reports only the documented `theme-color` metadata candidate.
+- [x] 2.1 `npm --prefix frontend run build` completes with the Astro components and refactored view. — 16511a0
+- [x] 2.2 The post-refactor candidate scan on `new.astro` reports only the documented `theme-color` metadata candidate. — 16511a0
 
 #### Manual
 
-- [x] 2.3 Confirm manual no-PDF save and PDF preview/edit/save behavior still work in the browser.
-- [x] 2.4 Confirm focus, disabled, and save-busy states are accessible, readable, and layout-stable.
-- [x] 2.5 Capture the refactored view at desktop and one mobile width and compare it with the prior screenshot.
+- [x] 2.3 Confirm manual no-PDF save and PDF preview/edit/save behavior still work in the browser. — 16511a0
+- [x] 2.4 Confirm focus, disabled, and save-busy states are accessible, readable, and layout-stable. — 16511a0
+- [x] 2.5 Capture the refactored view at desktop and one mobile width and compare it with the prior screenshot. — 16511a0
 
 ### Phase 3: Seven-State Visual Gate and UI Guard
 
 #### Automated
 
-- [ ] 3.1 `npm --prefix frontend run build` completes with the state-gallery route.
-- [ ] 3.2 The hardcoded-value scan reports only the documented theme-color metadata candidate, and `git diff --check` is clean.
+- [x] 3.1 `npm --prefix frontend run build` completes with the state-gallery route.
+- [x] 3.2 The hardcoded-value scan reports only the documented theme-color metadata candidate, and `git diff --check` is clean.
 
 #### Manual
 

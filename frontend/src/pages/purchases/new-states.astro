@@ -1,0 +1,123 @@
+---
+import Button from "../../components/ui/Button.astro";
+import Field from "../../components/ui/Field.astro";
+import "../../styles/tokens.css";
+---
+
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#eaf1e9" />
+    <title>Stany dodawania zakupu | PamiętajGwarancje</title>
+  </head>
+  <body>
+    <main class="gallery">
+      <header class="gallery-heading">
+        <p class="eyebrow">PAMIĘTAJGWARANCJE <span>/</span> DODAWANIE</p>
+        <h1>Stany dodawania zakupu</h1>
+      </header>
+
+      <div class="state-grid">
+        <section class="state" aria-labelledby="default-title">
+          <h2 id="default-title">Domyślny</h2>
+          <Field label="Nazwa produktu" required>
+            <input type="text" name="default-product" placeholder="Nazwa produktu" required />
+          </Field>
+          <Button variant="save" type="button">Zapisz zakup</Button>
+        </section>
+
+        <section class="state" aria-labelledby="hover-title">
+          <h2 id="hover-title">Hover</h2>
+          <Button variant="preview" type="button" title="Odczytaj dokument PDF">
+            Odczytaj dokument
+          </Button>
+        </section>
+
+        <section class="state" aria-labelledby="focus-title">
+          <h2 id="focus-title">Focus-visible</h2>
+          <Button variant="mode" type="button" aria-pressed="true" autofocus>
+            Ręcznie
+          </Button>
+        </section>
+
+        <section class="state" aria-labelledby="disabled-title">
+          <h2 id="disabled-title">Wyłączony</h2>
+          <Button variant="preview" type="button" disabled>
+            Odczytaj dokument
+          </Button>
+        </section>
+
+        <section class="state" aria-labelledby="error-title">
+          <h2 id="error-title">Błąd</h2>
+          <Field label="Nazwa produktu" required>
+            <input
+              id="error-product"
+              type="text"
+              name="error-product"
+              aria-invalid="true"
+              aria-describedby="product-error"
+              value=""
+            />
+          </Field>
+          <p class="error-copy" id="product-error"><strong>Błąd:</strong> wpisz nazwę produktu.</p>
+        </section>
+
+        <section class="state" aria-labelledby="loading-title">
+          <h2 id="loading-title">Ładowanie</h2>
+          <Button variant="save" type="button" class="is-pending" aria-busy="true">
+            <span class="save-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20">
+                <path d="M10 3v8m0 0 3-3m-3 3L7 8m-3 5.5V16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2.5" />
+              </svg>
+              <span class="save-spinner"></span>
+            </span>
+            Zapisz zakup
+          </Button>
+          <p class="loading-copy" role="status" aria-live="polite">Zapisywanie zakupu…</p>
+        </section>
+
+        <section class="state state-na" aria-labelledby="empty-title">
+          <h2 id="empty-title">Pusty stan: N/A</h2>
+          <p>Ten widok służy do dodawania zakupu i nie wyświetla listy zapisanych zakupów.</p>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>
+
+<style>
+  * { box-sizing: border-box; }
+  body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: var(--space-body-margin);
+    color: var(--color-text-primary);
+    background: var(--color-background-page);
+    font-family: var(--font-sans);
+  }
+  button, input { font: inherit; }
+  .gallery { width: min(1120px, calc(100% - 64px)); margin: 0 auto; }
+  .gallery-heading { padding: var(--space-page-heading-padding); }
+  .eyebrow { margin: var(--space-eyebrow-margin); color: var(--color-action-primary); font-size: 10px; font-weight: 700; }
+  .eyebrow span { padding: var(--space-eyebrow-divider-padding); color: var(--color-eyebrow-divider); }
+  h1 { margin: var(--space-page-title-margin); font-family: var(--font-serif); font-size: 34px; line-height: 1.15; font-weight: 500; }
+  .state-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-field-grid-gap); }
+  .state { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; align-content: start; gap: var(--space-section-heading-gap); padding: var(--space-entry-panel-padding); border: 1px solid var(--color-panel-border); border-radius: var(--radius-panel); background: var(--color-surface-page); }
+  .state > * { min-width: 0; max-width: 100%; }
+  h2 { margin: 0; font-size: 14px; line-height: 1.3; }
+  .state :global(.preview-button), .state :global(.save-button) { justify-self: start; }
+  .state-na p, .error-copy, .loading-copy { margin: 0; font-size: 12px; line-height: 1.5; }
+  .state-na p, .loading-copy { color: var(--color-text-muted); }
+  .error-copy { color: var(--color-feedback-error); }
+  :global(:focus-visible) { outline: 3px solid var(--color-focus-visible); outline-offset: var(--space-focus-outline-offset); }
+
+  @media (max-width: 680px) {
+    .gallery { width: calc(100% - 32px); }
+    .gallery-heading { padding: var(--space-mobile-page-heading-padding); }
+    .state-grid { grid-template-columns: minmax(0, 1fr); }
+    .state { padding: var(--space-mobile-entry-panel-padding); }
+    h1 { font-size: 29px; }
+  }
+</style>
