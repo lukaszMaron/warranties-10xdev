@@ -221,5 +221,5 @@ No data or API migration is required. Existing purchase records and PDF handling
 
 #### Manual
 
-- [ ] 3.3 Confirm all seven matrix states are shown or marked N/A with a reason, and all controls have accessible names with error/loading states not conveyed by color alone.
-- [ ] 3.4 Capture and inspect desktop and mobile gallery screenshots, and verify the UI rule is outside the CLI-managed block and names the current token/component/gallery paths.
+- [x] 3.3 Confirm all seven matrix states are shown or marked N/A with a reason, and all controls have accessible names with error/loading states not conveyed by color alone.
+- [x] 3.4 Capture and inspect desktop and mobile gallery screenshots, and verify the UI rule is outside the CLI-managed block and names the current token/component/gallery paths.

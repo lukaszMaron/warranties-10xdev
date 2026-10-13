@@ -47,7 +47,8 @@ Gwiazda przewodnia oznacza tu najmniejszy przepływ od początku do końca, któ
 | S-03 | search-purchases-by-name           | znaleźć zapisany zakup po nazwie produktu                   | S-01, S-02   | US-01, FR-005; Non-Functional Requirements: wynik wyszukiwania w ciągu 3 sekund | proposed |
 | S-04 | edit-saved-purchase                | edytować zapisany zakup                                     | S-02          | FR-006; Non-Functional Requirements: zachowanie ręcznych poprawek | proposed |
 | S-05 | delete-purchase-or-document        | usunąć zapisany zakup albo dokument                        | S-01, S-02   | FR-007; Access Control                  | proposed |
-| S-06 | view-expiring-warranties           | zobaczyć wkrótce wygasające gwarancje na ekranie głównym    | S-01, S-02   | US-01, FR-004; Non-Functional Requirements: ekran główny w ciągu 3 sekund | blocked  |
+| S-06 | improve-candidate-review-ux       | sprawniej przeglądać kandydatów dzięki akcjom zbiorczym, resetowi sesji i stanom ładowania | F-01 | — | planned |
+| S-07 | view-expiring-warranties           | zobaczyć wkrótce wygasające gwarancje na ekranie głównym    | S-01, S-02   | US-01, FR-004; Non-Functional Requirements: ekran główny w ciągu 3 sekund | blocked  |
 
 ## Baseline
 
@@ -108,7 +109,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Change ID:** search-purchases-by-name
 - **PRD refs:** US-01, FR-005; Non-Functional Requirements: wynik wyszukiwania w ciągu 3 sekund
 - **Prerequisites:** S-01, S-02
-- **Parallel with:** S-04, S-05, S-06
+- **Parallel with:** S-04, S-05, S-07
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Wyniki muszą obejmować zakupy z obu ścieżek i nie mogą ujawniać danych innego profilu.
@@ -120,7 +121,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Change ID:** edit-saved-purchase
 - **PRD refs:** FR-006; Non-Functional Requirements: zachowanie ręcznych poprawek
 - **Prerequisites:** S-02
-- **Parallel with:** S-01, S-03, S-05, S-06
+- **Parallel with:** S-01, S-03, S-05, S-07
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Zmiana danych musi aktualizować status gwarancji bez utraty ręcznych poprawek.
@@ -132,13 +133,25 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Change ID:** delete-purchase-or-document
 - **PRD refs:** FR-007; Access Control
 - **Prerequisites:** S-01, S-02
-- **Parallel with:** S-03, S-04, S-06
+- **Parallel with:** S-03, S-04, S-06, S-07
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Usunięcie dokumentu nie powinno przypadkowo usuwać zakupu, jeśli użytkownik chce zachować jego dane.
 - **Status:** proposed
 
-### S-06: Gwarancje wkrótce wygasające
+### S-06: Usprawnienia UX przeglądu kandydatów
+
+- **Outcome:** Użytkownik może wykonywać akcje zbiorcze na kandydatach, zresetować sesję przeglądu i widzieć czytelne stany ładowania.
+- **Change ID:** improve-candidate-review-ux
+- **PRD refs:** —
+- **Prerequisites:** F-01
+- **Parallel with:** S-05
+- **Blockers:** —
+- **Unknowns:** —
+- **Risk:** —
+- **Status:** planned
+
+### S-07: Gwarancje wkrótce wygasające
 
 - **Outcome:** Użytkownik może zobaczyć na ekranie głównym zakupy, których gwarancje wkrótce wygasają.
 - **Change ID:** view-expiring-warranties
@@ -161,11 +174,12 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | S-03       | search-purchases-by-name           | Wyszukiwać zakupy po nazwie produktu          | no                    | Czeka na S-01 i S-02.                     |
 | S-04       | edit-saved-purchase                | Edytować zapisany zakup                       | no                    | Czeka na S-02.                            |
 | S-05       | delete-purchase-or-document        | Usuwać zakup lub dokument                     | no                    | Czeka na S-01 i S-02.                     |
-| S-06       | view-expiring-warranties           | Pokazać wkrótce wygasające gwarancje           | no                    | Czeka na S-01, S-02 i definicję terminu.   |
+| S-06       | improve-candidate-review-ux        | Usprawnić przegląd kandydatów                 | no                    | Wymaga F-01; równolegle z S-05.            |
+| S-07       | view-expiring-warranties           | Pokazać wkrótce wygasające gwarancje           | no                    | Czeka na S-01, S-02 i definicję terminu.   |
 
 ## Open Roadmap Questions
 
-1. **Jaki przedział czasu oznacza, że gwarancja wkrótce wygasa?** — Owner: user. Block: S-06.
+1. **Jaki przedział czasu oznacza, że gwarancja wkrótce wygasa?** — Owner: user. Block: S-07.
 2. **Jaki orientacyjny ruch i wolumen przechowywanych dokumentów należy zakładać?** — Owner: user. Block: F-01.
 
 ## Parked

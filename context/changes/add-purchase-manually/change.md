@@ -1,0 +1,34 @@
+---
+change_id: add-purchase-manually
+title: Add purchase manually
+status: archived
+created: 2026-10-11
+updated: 2026-10-13
+archived_at: 2026-10-13T17:49:03Z
+---
+
+## Notes
+
+### External research: Polish consumer protections
+
+- A commercial guarantee is voluntary and its period is set by the guarantor. If no period is specified, UOKiK and the European Consumer Centre state that it is presumed to last two years from delivery.
+- The seller's statutory responsibility for non-conformity is a separate protection, generally lasting two years from delivery. It should not be conflated with a product's commercial guarantee.
+- Product implication: capture the commercial guarantee terms or end date from the user or supporting document; do not present statutory seller responsibility as the guarantee end date.
+
+Sources:
+- UOKiK, [Gwarancja](https://prawakonsumenta.uokik.gov.pl/reklamacja/gwarancja/)
+- Europejskie Centrum Konsumenckie, [Niezgodność towaru z umową a gwarancja](https://konsument.gov.pl/niezgodnosc-towaru-z-umowa-a-gwarancja-reklamacje/)
+
+### S-01 implementation check
+
+- **Verdict:** The PDF flow is correct for S-01's planned scope. The warranty end date is optional and user-entered; preview does not infer a guarantee period, and save persists the supplied date without calculating a default. The original PDF remains available as supporting documentation.
+- **Boundary:** This does not implement a complete warranty-status calculation. UOKiK notes that qualifying replacement or significant repair can restart the guarantee period, while other covered service cases can extend it. Keep those rules for a later warranty-logic slice; do not interpret statutory seller responsibility as the commercial guarantee date.
+- **Verification:** `uv run pytest tests/test_pdf_purchase_flow.py` — 11 passed.
+
+Source: UOKiK, [Gwarancja](https://prawakonsumenta.uokik.gov.pl/reklamacja/gwarancja/).
+
+### S-02 decisions confirmed during planning
+
+- Required fields: product name, purchase date, and purchase type. Seller, payment method, and an explicit warranty end date are optional.
+- The PRD's private/business duration formula is an estimate; a user-entered end date overrides it.
+- The end date is active through that day and expires the next day. February 29 maps to February 28 in a non-leap target year; status is unknown when no effective date can be established.
