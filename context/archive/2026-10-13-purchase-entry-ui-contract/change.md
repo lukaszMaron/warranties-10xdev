@@ -1,10 +1,10 @@
 ---
 change_id: purchase-entry-ui-contract
 title: Purchase entry ui contract
-status: implementing
+status: archived
 created: 2026-10-13
 updated: 2026-10-13
-archived_at: null
+archived_at: 2026-10-13T20:19:01Z
 ---
 
 ## Notes
