@@ -192,25 +192,25 @@ No data or API migration is required. Existing purchase records and PDF handling
 
 #### Automated
 
-- [x] 1.1 `npm --prefix frontend run build` completes with the shared stylesheet imported.
-- [x] 1.2 `tokens.css` contains the agreed semantic color, typography, radius, and spacing tokens, and `design-tokens.md` records inherited values and their source.
+- [x] 1.1 `npm --prefix frontend run build` completes with the shared stylesheet imported. — e533b9b
+- [x] 1.2 `tokens.css` contains the agreed semantic color, typography, radius, and spacing tokens, and `design-tokens.md` records inherited values and their source. — e533b9b
 
 #### Manual
 
-- [x] 1.3 Confirm the token-backed view retains the current palette and typography, documenting any contrast-driven correction.
+- [x] 1.3 Confirm the token-backed view retains the current palette and typography, documenting any contrast-driven correction. — e533b9b
 
 ### Phase 2: Reusable Controls and Purchase View
 
 #### Automated
 
-- [ ] 2.1 `npm --prefix frontend run build` completes with the Astro components and refactored view.
-- [ ] 2.2 The post-refactor candidate scan on `new.astro` reports only the documented `theme-color` metadata candidate.
+- [x] 2.1 `npm --prefix frontend run build` completes with the Astro components and refactored view.
+- [x] 2.2 The post-refactor candidate scan on `new.astro` reports only the documented `theme-color` metadata candidate.
 
 #### Manual
 
-- [ ] 2.3 Confirm manual no-PDF save and PDF preview/edit/save behavior still work in the browser.
-- [ ] 2.4 Confirm focus, disabled, and save-busy states are accessible, readable, and layout-stable.
-- [ ] 2.5 Capture the refactored view at desktop and one mobile width and compare it with the prior screenshot.
+- [x] 2.3 Confirm manual no-PDF save and PDF preview/edit/save behavior still work in the browser.
+- [x] 2.4 Confirm focus, disabled, and save-busy states are accessible, readable, and layout-stable.
+- [x] 2.5 Capture the refactored view at desktop and one mobile width and compare it with the prior screenshot.
 
 ### Phase 3: Seven-State Visual Gate and UI Guard
 

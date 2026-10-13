@@ -1,0 +1,41 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+type Variant = "mode" | "preview" | "save";
+
+interface Props extends HTMLAttributes<"button"> {
+  variant: Variant;
+}
+
+const { variant, class: className, ...attributes } = Astro.props;
+const variantClass = {
+  mode: "mode-button",
+  preview: "preview-button",
+  save: "save-button",
+}[variant];
+---
+
+<button class:list={[variantClass, className]} {...attributes}><slot /></button>
+
+<style>
+  .mode-button { min-height: 36px; padding: var(--space-mode-button-padding); border: 0; border-radius: var(--radius-mode-button); background: transparent; color: var(--color-mode-text); cursor: pointer; font-size: 12px; font-weight: 650; }
+  .mode-button[aria-pressed="true"] { background: var(--color-action-primary); color: var(--color-on-action); }
+  .preview-button { display: flex; width: 100%; min-height: 44px; align-items: center; justify-content: center; gap: var(--space-preview-button-gap); border: 0; border-radius: var(--radius-primary-action); background: var(--color-action-primary); color: var(--color-on-action); cursor: pointer; font-size: 13px; font-weight: 700; transition: background-color 140ms ease, transform 140ms ease; }
+  .preview-button:hover:not(:disabled) { background: var(--color-action-primary-hover); transform: translateY(-1px); }
+  .preview-button:disabled { background: var(--color-action-disabled); cursor: not-allowed; }
+  .preview-button.is-pending { background: var(--color-action-pending); }
+  .preview-button > :global(svg) { width: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .save-button { display: inline-flex; min-height: 42px; align-items: center; justify-content: center; gap: var(--space-save-button-gap); padding: var(--space-save-button-padding); border: 0; border-radius: var(--radius-primary-action); background: var(--color-action-accent); color: var(--color-on-action); cursor: pointer; font-size: 12px; font-weight: 700; }
+  .save-button:hover:not(:disabled) { background: var(--color-save-hover); }
+  .save-button:disabled { background: var(--color-save-disabled); cursor: not-allowed; }
+  .save-button.is-pending { background: var(--color-action-pending); cursor: wait; }
+  :global(.save-icon) { position: relative; display: grid; width: 17px; height: 17px; flex: 0 0 17px; place-items: center; }
+  :global(.save-icon svg) { position: absolute; width: 17px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  :global(.save-spinner) { position: absolute; width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: var(--radius-round); visibility: hidden; }
+  .save-button.is-pending :global(.save-icon svg) { visibility: hidden; }
+  .save-button.is-pending :global(.save-spinner) { visibility: visible; animation: save-spin 800ms linear infinite; }
+
+  @keyframes save-spin {
+    to { transform: rotate(360deg); }
+  }
+</style>

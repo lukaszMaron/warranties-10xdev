@@ -1,0 +1,29 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends HTMLAttributes<"label"> {
+  label: string;
+  required?: boolean;
+  optional?: boolean;
+  warningFor?: string;
+}
+
+const { label, required = false, optional = false, warningFor, class: className, ...attributes } = Astro.props;
+---
+
+<label class:list={["field", className]} {...attributes}>
+  <span>{label}{required ? <b> *</b> : optional ? <em>opcjonalnie</em> : null}</span>
+  <slot />
+  {warningFor && <small class="field-warning" data-warning-for={warningFor}></small>}
+</label>
+
+<style>
+  .field { display: flex; min-width: 0; flex-direction: column; gap: var(--space-field-gap); color: var(--color-field-label); font-size: 12px; font-weight: 650; }
+  .field b { color: var(--color-action-accent); font-weight: 700; }
+  .field em { margin-left: var(--space-optional-label-margin-left); color: var(--color-text-subtle); font-size: 10px; font-style: normal; font-weight: 400; }
+  .field-warning { min-height: 0; color: var(--color-field-warning); font-size: 10px; line-height: 1.35; font-weight: 400; }
+
+  :global(.field input), :global(.field select) { width: 100%; height: 42px; padding: var(--space-form-control-padding); border: 1px solid var(--color-field-border); border-radius: var(--radius-form-control); outline: none; background: var(--color-surface-control); color: var(--color-text-primary); font-size: 13px; font-weight: 400; }
+  :global(.field input:focus), :global(.field select:focus) { border-color: var(--color-action-primary); box-shadow: 0 0 0 3px var(--color-field-focus-ring); }
+  :global(.field select:invalid) { color: var(--color-text-subtle); }
+</style>

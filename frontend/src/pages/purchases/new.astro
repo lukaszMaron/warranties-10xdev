@@ -1,5 +1,7 @@
 ---
 import { previewPurchase, type DraftField } from "../../lib/api";
+import Button from "../../components/ui/Button.astro";
+import Field from "../../components/ui/Field.astro";
 import "../../styles/tokens.css";
 
 const fields: { name: DraftField; label: string; type: string }[] = [
@@ -35,8 +37,8 @@ const fields: { name: DraftField; label: string; type: string }[] = [
       </div>
 
       <div class="mode-switch" role="group" aria-label="Sposób dodania zakupu">
-        <button class="mode-button" id="manual-mode" type="button" aria-pressed="false">Ręcznie</button>
-        <button class="mode-button" id="pdf-mode" type="button" aria-pressed="true">Z dokumentu PDF</button>
+        <Button variant="mode" id="manual-mode" type="button" aria-pressed="false">Ręcznie</Button>
+        <Button variant="mode" id="pdf-mode" type="button" aria-pressed="true">Z dokumentu PDF</Button>
       </div>
 
       <div class="entry-layout" id="entry-layout">
@@ -65,12 +67,12 @@ const fields: { name: DraftField; label: string; type: string }[] = [
             <span>PDF</span><span class="footnote-separator"></span><span>Maks. 20 MiB</span>
           </div>
 
-          <button class="preview-button" id="preview-button" type="button" disabled>
+          <Button variant="preview" id="preview-button" type="button" disabled>
             <svg viewBox="0 0 20 20" aria-hidden="true">
               <path d="M10 3v9m0 0 3.5-3.5M10 12 6.5 8.5M4 13.5v2A1.5 1.5 0 0 0 5.5 17h9a1.5 1.5 0 0 0 1.5-1.5v-2" />
             </svg>
             Odczytaj dokument
-          </button>
+          </Button>
           <p class="privacy-note">
             <span class="privacy-mark" aria-hidden="true">●</span>
             Dokument jest analizowany lokalnie.
@@ -90,8 +92,12 @@ const fields: { name: DraftField; label: string; type: string }[] = [
           <form id="purchase-form" novalidate>
             <div class="field-grid">
               {fields.map(({ name, label, type }) => (
-                <label class={`field ${name === "product_name" ? "field-wide" : ""}`}>
-                  <span>{label}{name === "product_name" || name === "purchase_date" ? <b> *</b> : null}</span>
+                <Field
+                  label={label}
+                  required={name === "product_name" || name === "purchase_date"}
+                  warningFor={name}
+                  class={name === "product_name" ? "field-wide" : ""}
+                >
                   <input
                     data-draft-field={name}
                     name={name}
@@ -99,31 +105,31 @@ const fields: { name: DraftField; label: string; type: string }[] = [
                     required={name === "product_name" || name === "purchase_date"}
                     autocomplete={name === "seller" ? "organization" : "off"}
                   />
-                  <small class="field-warning" data-warning-for={name}></small>
-                </label>
+                </Field>
               ))}
-              <label class="field">
-                <span>Rodzaj zakupu<b> *</b></span>
+              <Field label="Rodzaj zakupu" required>
                 <select name="purchase_type" required data-draft-field="purchase_type">
                   <option value="">Wybierz rodzaj</option>
                   <option value="private">Prywatny</option>
                   <option value="business">Firmowy</option>
                 </select>
-              </label>
-              <label class="field">
-                <span>Koniec gwarancji <em>opcjonalnie</em></span>
+              </Field>
+              <Field label="Koniec gwarancji" optional>
                 <input name="warranty_end_date" type="date" data-draft-field="warranty_end_date" />
-              </label>
+              </Field>
             </div>
-            <div class="form-rule"></div>
+              <div class="form-rule"></div>
             <div class="form-actions">
               <p class="required-note"><b>*</b> Pole wymagane</p>
-              <button class="save-button" id="save-button" type="submit" disabled>
-                <svg viewBox="0 0 20 20" aria-hidden="true">
-                  <path d="M10 3v8m0 0 3-3m-3 3L7 8m-3 5.5V16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2.5" />
-                </svg>
+              <Button variant="save" id="save-button" type="submit" disabled>
+                <span class="save-icon" aria-hidden="true">
+                  <svg viewBox="0 0 20 20">
+                    <path d="M10 3v8m0 0 3-3m-3 3L7 8m-3 5.5V16a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2.5" />
+                  </svg>
+                  <span class="save-spinner"></span>
+                </span>
                 Zapisz zakup
-              </button>
+              </Button>
             </div>
           </form>
           <p class="status-message" id="save-message" role="status" aria-live="polite"></p>
@@ -139,7 +145,7 @@ const fields: { name: DraftField; label: string; type: string }[] = [
           </section>
         </section>
       </div>
-      <footer class="page-footer"><span>Twoje zakupy pozostają w prywatnym profilu.</span><span>01 / 02</span></footer>
+      <footer class="page-footer"><span>Twoje zakupy pozostają w prywatnym profilu.</span></footer>
     </main>
   </body>
 </html>
@@ -178,7 +184,11 @@ const fields: { name: DraftField; label: string; type: string }[] = [
   }
 
   function updateSaveButton() {
-    if (saveButton) saveButton.disabled = isPreviewing || isSaving || !canSave();
+    if (!saveButton) return;
+    saveButton.disabled = isPreviewing || isSaving || !canSave();
+    saveButton.classList.toggle("is-pending", isSaving);
+    if (isSaving) saveButton.setAttribute("aria-busy", "true");
+    else saveButton.removeAttribute("aria-busy");
   }
 
   function selectFile(file: File | undefined) {
@@ -366,8 +376,6 @@ const fields: { name: DraftField; label: string; type: string }[] = [
   h1 { margin: var(--space-page-title-margin); font-family: var(--font-serif); font-size: 38px; line-height: 1.08; font-weight: 500; }
   .heading-copy { margin: var(--space-heading-copy-margin); color: var(--color-text-muted); font-size: 14px; }
   .mode-switch { display: inline-flex; margin: var(--space-mode-switch-margin); padding: var(--space-mode-switch-padding); border: 1px solid var(--color-mode-border); border-radius: var(--radius-mode-switch); background: var(--color-mode-surface); }
-  .mode-button { min-height: 36px; padding: var(--space-mode-button-padding); border: 0; border-radius: var(--radius-mode-button); background: transparent; color: var(--color-mode-text); cursor: pointer; font-size: 12px; font-weight: 650; }
-  .mode-button[aria-pressed="true"] { background: var(--color-action-primary); color: var(--color-on-action); }
   .entry-layout { display: grid; grid-template-columns: minmax(280px, 0.82fr) minmax(390px, 1.18fr); background: var(--color-surface-page); border: 1px solid var(--color-panel-border); border-radius: var(--radius-panel); box-shadow: 0 12px 30px var(--color-panel-shadow); }
   .entry-layout.is-manual { grid-template-columns: minmax(0, 1fr); }
   .upload-panel[hidden] { display: none; }
@@ -388,11 +396,6 @@ const fields: { name: DraftField; label: string; type: string }[] = [
   .upload-footnote { display: flex; gap: var(--space-upload-footnote-gap); align-items: center; margin: var(--space-upload-footnote-margin); color: var(--color-text-muted); font-size: 11px; }
   .upload-footnote span:first-child { color: var(--color-action-primary); font-weight: 700; }
   .footnote-separator { width: 3px; height: 3px; border-radius: var(--radius-round); background: var(--color-upload-separator); }
-  .preview-button { display: flex; width: 100%; min-height: 44px; align-items: center; justify-content: center; gap: var(--space-preview-button-gap); border: 0; border-radius: var(--radius-primary-action); background: var(--color-action-primary); color: var(--color-on-action); cursor: pointer; font-size: 13px; font-weight: 700; transition: background-color 140ms ease, transform 140ms ease; }
-  .preview-button:hover:not(:disabled) { background: var(--color-action-primary-hover); transform: translateY(-1px); }
-  .preview-button:disabled { background: var(--color-action-disabled); cursor: not-allowed; }
-  .preview-button.is-pending { background: var(--color-action-pending); }
-  .preview-button svg { width: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
   .privacy-note { display: flex; align-items: center; gap: var(--space-privacy-note-gap); margin: var(--space-privacy-note-margin); color: var(--color-privacy-text); font-size: 11px; }
   .privacy-mark { color: var(--color-privacy-indicator); font-size: 9px; }
   .status-message { min-height: 18px; margin: var(--space-status-message-margin); color: var(--color-text-muted); font-size: 12px; line-height: 1.45; }
@@ -408,24 +411,13 @@ const fields: { name: DraftField; label: string; type: string }[] = [
   .result-status { grid-column: 2; grid-row: 1 / span 2; color: var(--color-action-primary); font-weight: 700; }
   .result-document { grid-column: 1 / -1; color: var(--color-text-muted); font-size: 11px; }
   .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-field-grid-gap); }
-  .field { display: flex; min-width: 0; flex-direction: column; gap: var(--space-field-gap); color: var(--color-field-label); font-size: 12px; font-weight: 650; }
-  .field-wide { grid-column: 1 / -1; }
-  .field b, .required-note b { color: var(--color-action-accent); font-weight: 700; }
-  .field em { margin-left: var(--space-optional-label-margin-left); color: var(--color-text-subtle); font-size: 10px; font-style: normal; font-weight: 400; }
-  .field input, .field select { width: 100%; height: 42px; padding: var(--space-form-control-padding); border: 1px solid var(--color-field-border); border-radius: var(--radius-form-control); outline: none; background: var(--color-surface-control); color: var(--color-text-primary); font-size: 13px; font-weight: 400; }
-  .field input:focus, .field select:focus { border-color: var(--color-action-primary); box-shadow: 0 0 0 3px var(--color-field-focus-ring); }
-  .field select:invalid { color: var(--color-text-subtle); }
-  .field-warning { min-height: 0; color: var(--color-field-warning); font-size: 10px; line-height: 1.35; font-weight: 400; }
+  :global(.field-wide) { grid-column: 1 / -1; }
+  .required-note b { color: var(--color-action-accent); font-weight: 700; }
   .form-rule { height: 1px; margin: var(--space-form-rule-margin); background: var(--color-border-subtle); }
   .required-note { margin: var(--space-required-note-margin); color: var(--color-required-note); font-size: 11px; }
   .form-actions { display: flex; align-items: center; justify-content: space-between; gap: var(--space-form-actions-gap); }
-  .save-button { display: inline-flex; min-height: 42px; align-items: center; justify-content: center; gap: var(--space-save-button-gap); padding: var(--space-save-button-padding); border: 0; border-radius: var(--radius-primary-action); background: var(--color-action-accent); color: var(--color-on-action); cursor: pointer; font-size: 12px; font-weight: 700; }
-  .save-button:hover:not(:disabled) { background: var(--color-save-hover); }
-  .save-button:disabled { background: var(--color-save-disabled); cursor: not-allowed; }
-  .save-button svg { width: 17px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
   .page-footer { display: flex; justify-content: space-between; padding: var(--space-page-footer-padding); color: var(--color-footer-text); font-size: 11px; }
-  .page-footer span:last-child { color: var(--color-action-primary); font-weight: 700; }
-  :focus-visible { outline: 3px solid var(--color-focus-visible); outline-offset: var(--space-focus-outline-offset); }
+  :global(:focus-visible) { outline: 3px solid var(--color-focus-visible); outline-offset: var(--space-focus-outline-offset); }
 
   @media (max-width: 760px) {
     .workspace { width: min(100% - 32px, 540px); }
@@ -441,7 +433,7 @@ const fields: { name: DraftField; label: string; type: string }[] = [
     .workspace { width: calc(100% - 24px); }
     .upload-panel, .details-panel { padding: var(--space-narrow-entry-panel-padding); }
     .field-grid { grid-template-columns: 1fr; }
-    .field-wide { grid-column: auto; }
+    :global(.field-wide) { grid-column: auto; }
     .page-footer { gap: var(--space-narrow-page-footer-gap); font-size: 10px; }
     .warranty-result { grid-template-columns: 1fr; }
     .result-date, .result-basis, .result-status, .result-document { grid-column: 1; grid-row: auto; }
