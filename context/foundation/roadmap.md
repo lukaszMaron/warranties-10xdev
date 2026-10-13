@@ -3,7 +3,7 @@ project: PamiętajGwarancje
 version: 1
 status: draft
 created: 2026-10-06
-updated: 2026-10-11
+updated: 2026-10-13
 prd_version: 1
 main_goal: speed
 top_blocker: decisions
@@ -43,7 +43,7 @@ Gwiazda przewodnia oznacza tu najmniejszy przepływ od początku do końca, któ
 | ---- | --------------------------------- | ---------------------------------------------------------- | ------------- | --------------------------------------- | -------- |
 | F-01 | private-purchase-storage-boundary | (foundation) ustalić minimalną granicę prywatnego zapisu    | —             | Access Control; Non-Functional Requirements: prywatność danych | done |
 | S-01 | add-purchase-from-pdf              | dodać zakup z PDF, poprawić dane OCR i zapisać              | F-01          | US-01, FR-002, FR-003; Non-Functional Requirements: zachowanie ręcznych poprawek | done |
-| S-02 | add-purchase-manually              | dodać zakup ręcznie i zobaczyć jego status gwarancji        | F-01          | FR-001; Business Logic                  | in-progress |
+| S-02 | add-purchase-manually              | dodać zakup ręcznie i zobaczyć jego status gwarancji        | F-01          | FR-001; Business Logic                  | done |
 | S-03 | search-purchases-by-name           | znaleźć zapisany zakup po nazwie produktu                   | S-01, S-02   | US-01, FR-005; Non-Functional Requirements: wynik wyszukiwania w ciągu 3 sekund | proposed |
 | S-04 | edit-saved-purchase                | edytować zapisany zakup                                     | S-02          | FR-006; Non-Functional Requirements: zachowanie ręcznych poprawek | proposed |
 | S-05 | delete-purchase-or-document        | usunąć zapisany zakup albo dokument                        | S-01, S-02   | FR-007; Access Control                  | proposed |
@@ -100,7 +100,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** Domyślny termin zależy od rodzaju zakupu i jest szacunkiem; rzeczywiste warunki gwaranta mogą się różnić, a termin podany przez użytkownika go zastępuje.
-- **Status:** in-progress
+- **Status:** done
 
 ### S-03: Wyszukiwanie po nazwie produktu
 
@@ -184,3 +184,4 @@ Foundations below assume these are present and do NOT re-scaffold them.
 
 - **F-01: Minimalna granica prywatnego zapisu** — Archived 2026-10-11 → `context/archive/2026-10-06-private-purchase-storage-boundary/`. Lesson: —.
 - **S-01: Użytkownik może dodać zakup z PDF, sprawdzić i poprawić dane odczytane przez OCR przed zapisem oraz zachować te poprawki.** — Archived 2026-10-06 → `context/archive/2026-10-06-add-purchase-from-pdf/`. Lesson: —.
+- **S-02: Użytkownik może ręcznie dodać zakup i zobaczyć wyliczony status oraz koniec gwarancji.** — Archived 2026-10-13 → `context/archive/2026-10-11-add-purchase-manually/`. Lesson: —.
