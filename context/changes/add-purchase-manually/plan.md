@@ -187,6 +187,6 @@ Warranty date and status calculation is local and constant-time; it adds no OCR 
 
 #### Manual
 
-- [ ] 2.3 Save a purchase in manual mode without selecting a PDF and confirm the UI shows an estimated end date and status, with no document reference.
-- [ ] 2.4 Enter an explicit end date in manual mode and confirm it replaces the estimate and is identified as user-provided.
-- [ ] 2.5 Use PDF mode to preview, edit a suggested value, save, and confirm the corrected values and original PDF remain available.
+- [x] 2.3 Save a purchase in manual mode without selecting a PDF and confirm the UI shows an estimated end date and status, with no document reference.
+- [x] 2.4 Enter an explicit end date in manual mode and confirm it replaces the estimate and is identified as user-provided.
+- [x] 2.5 Use PDF mode to preview, edit a suggested value, save, and confirm the corrected values and original PDF remain available.
