@@ -1,11 +1,13 @@
 import io
+import locale
 import os
 import re
 import shutil
 import subprocess
 from dataclasses import dataclass
-from datetime import datetime
-from typing import Any
+from datetime import date
+from functools import lru_cache
+from typing import Any, Literal
 
 import pypdfium2 as pdfium
 
@@ -13,6 +15,8 @@ from warranties_10xdev.storage import MAX_PDF_SIZE_BYTES, validate_pdf_size
 
 OCR_LANGUAGE = "pol+eng"
 OCR_TIMEOUT_SECONDS = 60
+
+DateOrder = Literal["DMY", "MDY"]
 
 
 class PdfExtractionError(ValueError):
@@ -28,7 +32,9 @@ class PdfSuggestions:
     warnings: dict[str, str]
 
 
-def extract_pdf_suggestions(pdf_bytes: bytes) -> PdfSuggestions:
+def extract_pdf_suggestions(
+    pdf_bytes: bytes, date_order: DateOrder | None = None
+) -> PdfSuggestions:
     if len(pdf_bytes) > MAX_PDF_SIZE_BYTES:
         raise PdfExtractionError("PDF must be 20 MiB or smaller.")
     if not pdf_bytes.startswith(b"%PDF-"):
@@ -48,7 +54,7 @@ def extract_pdf_suggestions(pdf_bytes: bytes) -> PdfSuggestions:
 
     text = "\n".join(page_text for page_text, _ in extracted_pages)
     ocr_warnings = [warning for _, warning in extracted_pages if warning]
-    return _suggest_fields(text, ocr_warnings)
+    return _suggest_fields(text, ocr_warnings, date_order=date_order)
 
 
 def _extract_page_text(page: Any) -> tuple[str, str | None]:
@@ -97,33 +103,34 @@ def _run_tesseract(image_bytes: bytes) -> str:
     return result.stdout.decode("utf-8", errors="replace").strip()
 
 
-def _suggest_fields(text: str, ocr_warnings: list[str]) -> PdfSuggestions:
+def _suggest_fields(
+    text: str, ocr_warnings: list[str], date_order: DateOrder | None = None
+) -> PdfSuggestions:
+    order = date_order if date_order is not None else system_date_order()
     all_labels = tuple(
         label
         for labels in _FIELD_LABELS.values()
         for label in labels
     )
-    product_name = _label_value(
-        text, _FIELD_LABELS["product_name"], all_labels
-    )
-    raw_date = _label_value(
-        text, _FIELD_LABELS["purchase_date"], all_labels
-    )
-    seller = _label_value(text, _FIELD_LABELS["seller"], all_labels)
-    payment_method = _label_value(text, _FIELD_LABELS["payment_method"], all_labels)
-    purchase_date = _normalize_date(raw_date)
-    fields = {
-        "product_name": product_name,
-        "purchase_date": purchase_date,
-        "seller": seller,
-        "payment_method": payment_method,
-    }
+    fields: dict[str, str | None] = {}
+    conflicts: set[str] = set()
+    for field, labels in _FIELD_LABELS.items():
+        values = _label_values(text, labels, all_labels)
+        if len(set(values)) > 1:
+            conflicts.add(field)
+            fields[field] = None
+        else:
+            fields[field] = values[0] if values else None
+    fields["purchase_date"] = _normalize_date(fields["purchase_date"], order)
+    ocr_prefix = f"{'; '.join(ocr_warnings)} " if ocr_warnings else ""
     warnings = {
-        field: (
-            f"{'; '.join(ocr_warnings)} "
-            if ocr_warnings
-            else ""
-        ) + f"No {field.replace('_', ' ')} suggestion was found; enter it manually."
+        field: ocr_prefix
+        + (
+            f"Multiple different {field.replace('_', ' ')} values were found; "
+            "enter it manually."
+            if field in conflicts
+            else f"No {field.replace('_', ' ')} suggestion was found; enter it manually."
+        )
         for field, value in fields.items()
         if value is None
     }
@@ -144,30 +151,97 @@ _FIELD_LABELS = {
 }
 
 
-def _label_value(
+# A separator is ":" or a "-" set off by whitespace, so "Product-ID" is not a label.
+_SEPARATOR = r"(?:\s*:|\s+-(?=\s|$))"
+
+
+def _label_values(
     text: str, labels: tuple[str, ...], all_labels: tuple[str, ...]
-) -> str | None:
+) -> list[str]:
+    """Values for the most specific label level found; multi-word labels beat single words."""
+    specific = tuple(label for label in labels if " " in label)
+    generic = tuple(label for label in labels if " " not in label)
+    for level in (specific, generic):
+        values = _values_for_labels(text, level, all_labels) if level else []
+        if values:
+            return values
+    return []
+
+
+def _values_for_labels(
+    text: str, labels: tuple[str, ...], all_labels: tuple[str, ...]
+) -> list[str]:
     alternatives = "|".join(re.escape(label) for label in sorted(labels, key=len, reverse=True))
     next_field = "|".join(
         re.escape(label) for label in sorted(all_labels, key=len, reverse=True)
     )
     pattern = re.compile(
-        rf"(?<!\S)(?:{alternatives})\s*[:\-]\s*(.+?)"
-        rf"(?=\s+(?:{next_field})\s*[:\-]|$)",
-        re.IGNORECASE | re.DOTALL,
+        rf"(?<!\S)(?:{alternatives}){_SEPARATOR}\s*(.*?)"
+        rf"(?=\s+(?:{next_field}){_SEPARATOR}|\s*$)",
+        re.IGNORECASE,
     )
-    match = pattern.search(text)
-    return match.group(1).strip() if match else None
+    values: list[str] = []
+    for line in text.splitlines():
+        for match in pattern.finditer(line):
+            value = match.group(1).strip()
+            if value:
+                values.append(value)
+    return values
 
 
-def _normalize_date(value: str | None) -> str | None:
+_DATE_PATTERN = re.compile(
+    r"\b(?:(?P<iso_y>\d{4})-(?P<iso_m>\d{1,2})-(?P<iso_d>\d{1,2})"
+    r"|(?P<sl_d>\d{1,2})/(?P<sl_m>\d{1,2})/(?P<sl_y>\d{4}|\d{2})"
+    r"|(?P<a>\d{1,2})(?P<sep>[.-])(?P<b>\d{1,2})(?P=sep)(?P<y>\d{4}|\d{2}))\b"
+)
+
+
+def _normalize_date(value: str | None, date_order: DateOrder = "DMY") -> str | None:
     if value is None:
         return None
-    candidates = re.findall(r"\b(?:\d{4}-\d{1,2}-\d{1,2}|\d{1,2}[./-]\d{1,2}[./-]\d{2,4})\b", value)
-    for candidate in candidates:
-        for date_format in ("%Y-%m-%d", "%d.%m.%Y", "%d/%m/%Y", "%d-%m-%Y", "%d.%m.%y", "%d/%m/%y"):
-            try:
-                return datetime.strptime(candidate, date_format).date().isoformat()
-            except ValueError:
-                continue
+    for match in _DATE_PATTERN.finditer(value):
+        if match["iso_y"]:
+            year, month, day = match["iso_y"], match["iso_m"], match["iso_d"]
+        elif match["sl_y"]:
+            year, month, day = match["sl_y"], match["sl_m"], match["sl_d"]
+        else:
+            year = match["y"]
+            day, month = (
+                (match["a"], match["b"]) if date_order == "DMY" else (match["b"], match["a"])
+            )
+        try:
+            return date(_full_year(year), int(month), int(day)).isoformat()
+        except ValueError:
+            continue
     return None
+
+
+def _full_year(year: str) -> int:
+    if len(year) == 4:
+        return int(year)
+    short = int(year)
+    # Same pivot as strptime's %y.
+    return 2000 + short if short < 69 else 1900 + short
+
+
+def _date_order_from_sample(sample: str) -> DateOrder:
+    """Order of day and month in a locale rendering of 2026-03-05; DMY when unclear."""
+    match = re.match(r"\s*(\d{1,2})\D+(\d{1,2})\D+\d{2,4}\s*$", sample)
+    if match and (int(match[1]), int(match[2])) == (3, 5):
+        return "MDY"
+    return "DMY"
+
+
+@lru_cache(maxsize=1)
+def system_date_order() -> DateOrder:
+    """Day/month order of the server's system locale, read once per process."""
+    try:
+        previous = locale.setlocale(locale.LC_TIME)
+        try:
+            locale.setlocale(locale.LC_TIME, "")
+            sample = date(2026, 3, 5).strftime("%x")
+        finally:
+            locale.setlocale(locale.LC_TIME, previous)
+    except (locale.Error, ValueError):
+        return "DMY"
+    return _date_order_from_sample(sample)

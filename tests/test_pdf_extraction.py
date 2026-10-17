@@ -59,7 +59,7 @@ def test_ocr_uses_polish_language_and_returns_editable_suggestions(
     monkeypatch.setattr(pdf_extraction.shutil, "which", lambda command: "tesseract.exe")
     monkeypatch.setattr(pdf_extraction.subprocess, "run", mock_run)
 
-    result = extract_pdf_suggestions(_pdf(b""))
+    result = extract_pdf_suggestions(_pdf(b""), date_order="DMY")
 
     assert calls[0][-2:] == ["-l", "pol+eng"]
     assert result.product_name == "Wiertarka"
@@ -112,6 +112,84 @@ def test_reports_missing_tesseract_as_field_warnings(
         "payment_method",
     }
     assert all("Tesseract" in warning for warning in result.warnings.values())
+
+
+@pytest.mark.parametrize(
+    ("text", "field", "expected"),
+    [
+        # Decision 1: a specific label beats a generic one regardless of position.
+        ("Date: 2026-01-01\nPurchase date: 2026-03-05", "purchase_date", "2026-03-05"),
+        # Decision 1: "Product-ID" is not the "Product" label.
+        ("Product-ID: 123\nProduct name: Drill", "product_name", "Drill"),
+        ("Product-ID: 123", "product_name", None),
+        # Decision 6: a value ends at its line, even before an unknown label.
+        ("Product: Drill\nWarranty: 24 months", "product_name", "Drill"),
+        # Decision 6: a value ends before a known label on the same line.
+        ("Product: Drill Seller: Castorama", "product_name", "Drill"),
+        ("Product: Drill Seller: Castorama", "seller", "Castorama"),
+    ],
+)
+def test_label_rules_pick_the_intended_value(
+    text: str, field: str, expected: str | None
+) -> None:
+    result = pdf_extraction._suggest_fields(text, [], date_order="DMY")
+
+    assert getattr(result, field) == expected
+    assert (field in result.warnings) is (expected is None)
+
+
+def test_conflicting_same_level_labels_leave_field_empty_with_warning() -> None:
+    # Decision 1 (plan round 2): different values at one specificity level are ambiguous.
+    conflict = pdf_extraction._suggest_fields(
+        "Purchase date: 2026-03-05\nData zakupu: 2026-04-01", [], date_order="DMY"
+    )
+    agreeing = pdf_extraction._suggest_fields(
+        "Purchase date: 2026-03-05\nData zakupu: 2026-03-05", [], date_order="DMY"
+    )
+
+    assert conflict.purchase_date is None
+    assert "Multiple different" in conflict.warnings["purchase_date"]
+    assert agreeing.purchase_date == "2026-03-05"
+    assert "purchase_date" not in agreeing.warnings
+
+
+@pytest.mark.parametrize(
+    ("raw", "date_order", "expected"),
+    [
+        # Decision 2: ISO is always year-month-day.
+        ("2026-03-05", "MDY", "2026-03-05"),
+        # Decision 2: "/" is always day/month/year.
+        ("05/03/2026", "MDY", "2026-03-05"),
+        ("05/03/2026", "DMY", "2026-03-05"),
+        # Decision 2: "." and "-" follow the server locale order.
+        ("05.03.2026", "DMY", "2026-03-05"),
+        ("05.03.2026", "MDY", "2026-05-03"),
+        ("05-03-26", "DMY", "2026-03-05"),
+        ("05-03-26", "MDY", "2026-05-03"),
+        # A date that does not exist is not suggested.
+        ("31.02.2026", "DMY", None),
+    ],
+)
+def test_purchase_date_formats_follow_owner_rules(
+    raw: str, date_order: str, expected: str | None
+) -> None:
+    result = pdf_extraction._suggest_fields(
+        f"Purchase date: {raw}", [], date_order=date_order
+    )
+
+    assert result.purchase_date == expected
+    assert ("purchase_date" in result.warnings) is (expected is None)
+
+
+@pytest.mark.parametrize(
+    ("locale_sample", "expected"),
+    [("05.03.2026", "DMY"), ("05/03/2026", "DMY"), ("3/5/2026", "MDY"), ("2026-03-05", "DMY")],
+)
+def test_date_order_is_read_from_locale_formatted_sample(
+    locale_sample: str, expected: str
+) -> None:
+    # Decision 2: the order comes from the system locale's rendering of 2026-03-05.
+    assert pdf_extraction._date_order_from_sample(locale_sample) == expected
 
 
 def test_rejects_oversized_pdf() -> None:
