@@ -5,7 +5,7 @@
 >
 > Odśwież: uruchom `/10x-test-plan --refresh`, gdy plan się zestarzeje (patrz §8).
 >
-> Ostatnia aktualizacja: 2026-10-13
+> Ostatnia aktualizacja: 2026-10-17
 
 ## 1. Strategy
 
@@ -75,7 +75,7 @@ Astro `build` nie wykonuje sprawdzania typów. W fazie 4 należy jawnie dodać i
 
 ## 5. Quality Gates
 
-Obecnie nie ma workflow CI ani skryptu frontend test/typecheck. Faza 4 ma przypiąć poniższe bramki do rzeczywistych skryptów lokalnych i CI.
+Workflow `.github/workflows/tests.yml` uruchamia na PR do `main` i `develop` `uv run pytest -q` oraz `npm run build` (frontend). Brak jeszcze skryptu frontend test/typecheck. Faza 4 ma przypiąć pozostałe bramki do rzeczywistych skryptów lokalnych i CI.
 
 | Gate | Where | Required? | Catches |
 |---|---|---|---|
