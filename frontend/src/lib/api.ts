@@ -25,6 +25,7 @@ export interface SavedPurchase {
   date_basis: "user" | "estimate" | "unknown";
   status: "active" | "expired" | "unknown";
   created_at: string;
+  warnings: Partial<Record<string, string>>;
 }
 
 const apiOrigin = (import.meta.env.PUBLIC_API_BASE_URL ?? "").replace(/\/$/, "");

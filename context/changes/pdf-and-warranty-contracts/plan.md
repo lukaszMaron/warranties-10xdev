@@ -366,20 +366,20 @@ Brak zmian schematu. Nowe pole `warnings` w odpowiedzi jest addytywne.
 
 #### Automated
 
-- [x] 3.1 Test korekty przechodzi: `uv run pytest tests/test_pdf_purchase_flow.py`
-- [x] 3.2 Cały zestaw przechodzi: `uv run pytest -q`
+- [x] 3.1 Test korekty przechodzi: `uv run pytest tests/test_pdf_purchase_flow.py` — 174c3f8
+- [x] 3.2 Cały zestaw przechodzi: `uv run pytest -q` — 174c3f8
 
 ### Phase 4: Minimalny frontend
 
 #### Automated
 
-- [ ] 4.1 Build frontendu przechodzi: `npm run build` w `frontend/`
+- [x] 4.1 Build frontendu przechodzi: `npm run build` w `frontend/`
 
 #### Manual
 
-- [ ] 4.2 Zapis z terminem przed zakupem pokazuje ostrzeżenie, a zakup jest zapisany
-- [ ] 4.3 Data w podsumowaniu zapisu ma format zgodny z ustawieniami przeglądarki (np. `en-US` daje M/D/YYYY)
-- [ ] 4.4 Stany na `frontend/src/pages/purchases/new-states.astro` nadal wyglądają poprawnie
+- [x] 4.2 Zapis z terminem przed zakupem pokazuje ostrzeżenie, a zakup jest zapisany
+- [x] 4.3 Data w podsumowaniu zapisu ma format zgodny z ustawieniami przeglądarki (np. `en-US` daje M/D/YYYY)
+- [x] 4.4 Stany na `frontend/src/pages/purchases/new-states.astro` nadal wyglądają poprawnie
 
 ### Phase 5: Aktualizacja test-plan.md
 

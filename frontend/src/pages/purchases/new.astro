@@ -141,6 +141,7 @@ const fields: { name: DraftField; label: string; type: string }[] = [
             <p class="result-date" id="result-date"></p>
             <p class="result-basis" id="result-basis"></p>
             <p class="result-status" id="result-status"></p>
+            <p class="result-warning" id="result-warning" role="alert" hidden></p>
             <p class="result-document" id="result-document"></p>
           </section>
         </section>
@@ -299,7 +300,7 @@ const fields: { name: DraftField; label: string; type: string }[] = [
     saveMessage.textContent = "Zapisywanie zakupu…";
     try {
       const saved = await savePurchase(form, file);
-      const formatDate = (value: string) => new Intl.DateTimeFormat("pl-PL", {
+      const formatDate = (value: string) => new Intl.DateTimeFormat(undefined, {
         dateStyle: "long",
         timeZone: "UTC",
       }).format(new Date(`${value}T00:00:00Z`));
@@ -318,6 +319,10 @@ const fields: { name: DraftField; label: string; type: string }[] = [
         : "Brak ustalonej daty końca gwarancji";
       document.querySelector<HTMLElement>("#result-basis")!.textContent = basisLabels[saved.date_basis];
       document.querySelector<HTMLElement>("#result-status")!.textContent = statusLabels[saved.status];
+      const resultWarning = document.querySelector<HTMLElement>("#result-warning")!;
+      const saveWarnings = Object.values(saved.warnings ?? {}).filter(Boolean);
+      resultWarning.textContent = saveWarnings.join(" ");
+      resultWarning.hidden = saveWarnings.length === 0;
       document.querySelector<HTMLElement>("#result-document")!.textContent = saved.document_ref
         ? "Dokument PDF zapisany w profilu."
         : "Zakup zapisany bez dokumentu.";
@@ -409,6 +414,8 @@ const fields: { name: DraftField; label: string; type: string }[] = [
   .result-date { grid-column: 1; font-weight: 700; }
   .result-basis { grid-column: 1; }
   .result-status { grid-column: 2; grid-row: 1 / span 2; color: var(--color-action-primary); font-weight: 700; }
+  .result-warning { grid-column: 1 / -1; margin: var(--space-result-copy-margin); color: var(--color-field-warning); font-size: 12px; line-height: 1.45; }
+  .result-warning[hidden] { display: none; }
   .result-document { grid-column: 1 / -1; color: var(--color-text-muted); font-size: 11px; }
   .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-field-grid-gap); }
   :global(.field-wide) { grid-column: 1 / -1; }
