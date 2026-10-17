@@ -342,25 +342,25 @@ Brak zmian schematu. Nowe pole `warnings` w odpowiedzi jest addytywne.
 
 #### Automated
 
-- [x] 1.1 Nowe testy ekstrakcji przechodzą: `uv run pytest tests/test_pdf_extraction.py`
-- [x] 1.2 Testy podglądu w API nadal przechodzą: `uv run pytest tests/test_pdf_preview_api.py`
-- [x] 1.3 Cały zestaw przechodzi: `uv run pytest -q`
+- [x] 1.1 Nowe testy ekstrakcji przechodzą: `uv run pytest tests/test_pdf_extraction.py` — 601a743
+- [x] 1.2 Testy podglądu w API nadal przechodzą: `uv run pytest tests/test_pdf_preview_api.py` — 601a743
+- [x] 1.3 Cały zestaw przechodzi: `uv run pytest -q` — 601a743
 
 #### Manual
 
-- [x] 1.4 Każdy nowy test ma w nazwie lub komentarzu odwołanie do reguły, którą chroni (decyzja 1, 2 lub 6 z research.md)
+- [x] 1.4 Każdy nowy test ma w nazwie lub komentarzu odwołanie do reguły, którą chroni (decyzja 1, 2 lub 6 z research.md) — 601a743
 
 ### Phase 2: Gwarancja — zegar UTC i ostrzeżenia zapisu
 
 #### Automated
 
-- [ ] 2.1 Testy gwarancji przechodzą: `uv run pytest tests/test_warranty_calculation.py`
-- [ ] 2.2 Testy przepływu zapisu przechodzą: `uv run pytest tests/test_pdf_purchase_flow.py`
-- [ ] 2.3 Cały zestaw przechodzi: `uv run pytest -q`
+- [x] 2.1 Testy gwarancji przechodzą: `uv run pytest tests/test_warranty_calculation.py`
+- [x] 2.2 Testy przepływu zapisu przechodzą: `uv run pytest tests/test_pdf_purchase_flow.py`
+- [x] 2.3 Cały zestaw przechodzi: `uv run pytest -q`
 
 #### Manual
 
-- [ ] 2.4 Ręczne wywołanie zapisu (np. `/docs` FastAPI) z terminem przed zakupem zwraca 200 i czytelne ostrzeżenie
+- [x] 2.4 Ręczne wywołanie zapisu (np. `/docs` FastAPI) z terminem przed zakupem zwraca 200 i czytelne ostrzeżenie
 
 ### Phase 3: Testy korekty przez API
 

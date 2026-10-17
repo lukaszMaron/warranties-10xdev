@@ -2,6 +2,7 @@ from datetime import date
 
 import pytest
 
+from warranties_10xdev import purchases
 from warranties_10xdev.purchases import (
     PurchaseInput,
     WarrantyCalculation,
@@ -78,3 +79,51 @@ def test_missing_purchase_has_unknown_warranty_status() -> None:
     assert calculate_warranty(None, today=date(2026, 1, 1)) == WarrantyCalculation(
         None, "unknown", "unknown"
     )
+
+
+@pytest.mark.parametrize(
+    ("purchase_date", "purchase_type", "end_date", "expected_message"),
+    [
+        (date(2026, 3, 10), "private", None, None),
+        (date(2026, 3, 10), "private", date(2027, 6, 1), None),
+        (
+            date(2026, 3, 10), "business", date(2027, 6, 1),
+            "Warranty end date is later than the estimated 1-year business warranty (2027-03-10).",
+        ),
+        (date(2026, 3, 10), "private", date(2028, 3, 10), None),
+        (date(2026, 3, 10), "business", date(2027, 3, 10), None),
+        (
+            date(2026, 3, 10), "private", date(2028, 3, 11),
+            "Warranty end date is later than the estimated 2-year private warranty (2028-03-10).",
+        ),
+        (
+            date(2026, 3, 10), "private", date(2026, 3, 9),
+            "Warranty end date is earlier than the purchase date.",
+        ),
+        (date(2026, 3, 10), "private", date(2026, 3, 10), None),
+        (date(2024, 2, 29), "business", date(2025, 2, 28), None),
+        (
+            date(2024, 2, 29), "business", date(2025, 3, 1),
+            "Warranty end date is later than the estimated 1-year business warranty (2025-02-28).",
+        ),
+    ],
+)
+def test_manual_warranty_warnings_follow_purchase_type_estimate(
+    purchase_date: date,
+    purchase_type: str,
+    end_date: date | None,
+    expected_message: str | None,
+) -> None:
+    # Research decision 3: unusual dates warn; the threshold follows the purchase type.
+    purchase = _purchase(
+        purchase_date=purchase_date,
+        purchase_type=purchase_type,
+        warranty_end_date=end_date,
+    )
+
+    warnings = purchases.warranty_end_date_warnings(purchase)
+
+    assert warnings == (
+        {"warranty_end_date": expected_message} if expected_message is not None else {}
+    )
+    assert purchase.warranty_end_date == end_date

@@ -251,6 +251,36 @@ def _insert_purchase(
     )
 
 
+def _estimated_warranty_end_date(purchase: PurchaseInput) -> date:
+    years = 2 if purchase.purchase_type == "private" else 1
+    target_year = purchase.purchase_date.year + years
+    try:
+        return date(target_year, purchase.purchase_date.month, purchase.purchase_date.day)
+    except ValueError:
+        return date(target_year, 2, 28)
+
+
+def warranty_end_date_warnings(purchase: PurchaseInput) -> dict[str, str]:
+    normalized = _validate_purchase(purchase)
+    end_date = normalized.warranty_end_date
+    if end_date is None:
+        return {}
+    if end_date < normalized.purchase_date:
+        return {
+            "warranty_end_date": "Warranty end date is earlier than the purchase date."
+        }
+    estimated_end_date = _estimated_warranty_end_date(normalized)
+    if end_date > estimated_end_date:
+        years = estimated_end_date.year - normalized.purchase_date.year
+        return {
+            "warranty_end_date": (
+                f"Warranty end date is later than the estimated {years}-year "
+                f"{normalized.purchase_type} warranty ({estimated_end_date.isoformat()})."
+            )
+        }
+    return {}
+
+
 def calculate_warranty(
     purchase: PurchaseInput | None, today: date | None = None
 ) -> WarrantyCalculation:
@@ -262,14 +292,7 @@ def calculate_warranty(
         effective_end_date = normalized.warranty_end_date
         date_basis: Literal["user", "estimate", "unknown"] = "user"
     else:
-        years = 2 if normalized.purchase_type == "private" else 1
-        target_year = normalized.purchase_date.year + years
-        try:
-            effective_end_date = date(
-                target_year, normalized.purchase_date.month, normalized.purchase_date.day
-            )
-        except ValueError:
-            effective_end_date = date(target_year, 2, 28)
+        effective_end_date = _estimated_warranty_end_date(normalized)
         date_basis = "estimate"
 
     current_date = today if today is not None else date.today()

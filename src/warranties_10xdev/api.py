@@ -1,5 +1,5 @@
 from dataclasses import asdict
-from datetime import date
+from datetime import date, datetime, timezone
 from typing import Literal
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
@@ -11,6 +11,7 @@ from warranties_10xdev.purchases import (
     PurchaseValidationError,
     calculate_warranty,
     save_purchase as persist_purchase,
+    warranty_end_date_warnings,
 )
 from warranties_10xdev.storage import (
     MAX_PDF_SIZE_BYTES,
@@ -21,6 +22,10 @@ from warranties_10xdev.storage import (
 UPLOAD_CHUNK_SIZE = 64 * 1024
 
 app = FastAPI(title="PamiętajGwarancje API")
+
+
+def utc_today() -> date:
+    return datetime.now(timezone.utc).date()
 
 
 async def _read_bounded_upload(upload: UploadFile) -> bytes:
@@ -68,7 +73,8 @@ async def save_purchase(
         warranty_end_date=warranty_end_date,
     )
     try:
-        warranty = calculate_warranty(purchase)
+        warranty = calculate_warranty(purchase, today=utc_today())
+        warnings = warranty_end_date_warnings(purchase)
         profile = ProfileStorage.from_environment()
         saved = persist_purchase(profile, purchase, pdf_bytes)
     except PurchaseValidationError as exc:
@@ -90,5 +96,6 @@ async def save_purchase(
         ),
         date_basis=warranty.date_basis,
         status=warranty.status,
+        warnings=warnings,
     )
     return response

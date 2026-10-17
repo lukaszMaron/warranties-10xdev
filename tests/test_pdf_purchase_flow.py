@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime, timedelta, timezone, tzinfo
 import os
 import sqlite3
 from pathlib import Path
@@ -264,6 +264,7 @@ def test_api_saves_corrected_values_and_private_pdf(
     data_root = tmp_path / "profile"
     data_root.mkdir()
     monkeypatch.setenv(storage.DATA_DIR_ENV, str(data_root))
+    monkeypatch.setattr(api, "utc_today", lambda: date(2026, 10, 17))
 
     response = client.post(
         "/api/purchases",
@@ -288,7 +289,7 @@ def test_api_saves_corrected_values_and_private_pdf(
     assert saved["warranty_end_date"] == "2027-04-03"
     assert saved["effective_end_date"] == "2027-04-03"
     assert saved["date_basis"] == "user"
-    assert saved["status"] in {"active", "expired"}
+    assert saved["status"] == "active"
     assert saved["document_ref"].endswith(".pdf")
     assert "url" not in saved and str(data_root) not in response.text
 
@@ -378,6 +379,113 @@ def test_api_returns_manual_warranty_override_as_user_provided(
     assert saved["effective_end_date"] == "2099-08-09"
     assert saved["date_basis"] == "user"
     assert saved["status"] == "active"
+
+
+@pytest.mark.parametrize(
+    ("purchase_type", "end_date", "effective_end_date", "expected_message"),
+    [
+        (
+            "private", "2026-03-09", "2026-03-09",
+            "Warranty end date is earlier than the purchase date.",
+        ),
+        (
+            "business", "2027-06-01", "2027-06-01",
+            "Warranty end date is later than the estimated 1-year business warranty (2027-03-10).",
+        ),
+        ("private", "2027-06-01", "2027-06-01", None),
+        (
+            "private", "2099-08-09", "2099-08-09",
+            "Warranty end date is later than the estimated 2-year private warranty (2028-03-10).",
+        ),
+        ("business", "", "2027-03-10", None),
+    ],
+)
+def test_api_persists_warranty_dates_and_returns_nonblocking_warnings(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    purchase_type: str,
+    end_date: str,
+    effective_end_date: str,
+    expected_message: str | None,
+) -> None:
+    # Research decision 3: warn without rejecting or changing the manual date.
+    data_root = tmp_path / "profile"
+    data_root.mkdir()
+    monkeypatch.setenv(storage.DATA_DIR_ENV, str(data_root))
+
+    response = client.post(
+        "/api/purchases",
+        data={
+            "product_name": "Manual warranty",
+            "purchase_date": "2026-03-10",
+            "purchase_type": purchase_type,
+            "warranty_end_date": end_date,
+        },
+    )
+
+    assert response.status_code == 200
+    saved = response.json()
+    assert saved["warnings"] == (
+        {"warranty_end_date": expected_message} if expected_message is not None else {}
+    )
+    assert saved["warranty_end_date"] == (end_date or None)
+    assert saved["effective_end_date"] == effective_end_date
+    assert saved["date_basis"] == ("user" if end_date else "estimate")
+    with ProfileStorage(data_root).connect() as connection:
+        assert connection.execute(
+            "SELECT purchase_type, warranty_end_date FROM purchase WHERE purchase_id = ?",
+            (saved["purchase_id"],),
+        ).fetchone() == (purchase_type, end_date or None)
+
+
+def test_api_clock_uses_utc_date_when_device_is_already_on_next_day(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Research decision 4: Warsaw 2026-10-18 00:30 is still 2026-10-17 in UTC.
+    device_timezone = timezone(timedelta(hours=2))
+    instant = datetime(2026, 10, 18, 0, 30, tzinfo=device_timezone)
+
+    class FixedClock:
+        @staticmethod
+        def now(tz: tzinfo | None = None) -> datetime:
+            return instant.astimezone(tz if tz is not None else device_timezone)
+
+    monkeypatch.setattr(api, "datetime", FixedClock)
+
+    assert api.utc_today() == date(2026, 10, 17)
+
+
+@pytest.mark.parametrize(
+    ("utc_date", "expected_status"),
+    [(date(2026, 10, 17), "active"), (date(2026, 10, 18), "expired")],
+)
+def test_api_warranty_end_is_inclusive_using_utc_clock(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    utc_date: date,
+    expected_status: str,
+) -> None:
+    data_root = tmp_path / "profile"
+    data_root.mkdir()
+    monkeypatch.setenv(storage.DATA_DIR_ENV, str(data_root))
+    monkeypatch.setattr(api, "utc_today", lambda: utc_date)
+
+    response = client.post(
+        "/api/purchases",
+        data={
+            "product_name": "UTC boundary",
+            "purchase_date": "2025-10-17",
+            "purchase_type": "business",
+            "warranty_end_date": "2026-10-17",
+        },
+    )
+
+    assert response.status_code == 200
+    saved = response.json()
+    assert saved["status"] == expected_status
+    assert saved["effective_end_date"] == "2026-10-17"
+    assert saved["date_basis"] == "user"
+    assert saved["warnings"] == {}
 
 
 def test_api_rejects_missing_required_fields_and_corrupt_pdf(
