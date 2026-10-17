@@ -2547,15 +2547,7 @@
         "m1l5-4-store-plan.md",
         "m3l2-ad-hoc-testing.md"
       ],
-      "configs": [],
-      "representation": {
-        "lang": "en",
-        "tool": "copilot",
-        "courseRules": true,
-        "rules": true
-      },
-      "installedReleaseId": "r-5a881691e49bc76caa8246859885fd0f6213df0a3841d25e221fa9294a2b4673",
-      "installedManifestHash": "11d85eaf9ca2fe01249cc24a43f5b6aca196b16fb79576a3d3a29bc08ba9863d"
+      "configs": []
     }
   },
   "managedRules": {
