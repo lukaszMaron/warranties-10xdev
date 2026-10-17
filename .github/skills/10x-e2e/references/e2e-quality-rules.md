@@ -72,3 +72,26 @@ each to your tool's idiom:
 
 If you work on a non-Playwright stack, write these mappings into your seed test
 and your E2E prompts so the agent produces idiomatic, stable tests for your tool.
+
+## Project conventions — warranties-10xdev
+
+- The Astro app lives in `frontend/`; drive its real `/purchases/new` route.
+  The local FastAPI API is a separate process on port 8000. Keep both real in
+  browser tests and let `frontend/playwright.config.ts` start them.
+- Each Playwright run uses a disposable `WARRANTIES_DATA_DIR` outside the
+  checkout. Never point a browser test at a user's existing warranty profile or
+  shared/production storage; the configured global teardown removes the run's
+  temporary profile.
+- Build deterministic synthetic PDFs in the test instead of using real
+  receipts, private data, external OCR services, or developer-specific files.
+  The app's local PDF extraction and API should remain real.
+- For the current purchase-entry flow, assert both the visible outcome and the
+  exact values returned by `POST /api/purchases`. The current UI has no route to
+  reopen a saved purchase, and the API response can echo submitted values even
+  if durable storage is wrong. Therefore this browser assertion protects the
+  form-to-API correction flow, not database durability; prove persistence with
+  the backend integration test or a future browser flow that reads saved data.
+- Authentication is not implemented (`auth: none`); do not add login or
+  `storageState` setup unless the app's auth behavior changes.
+- Run browser tests from `frontend/` with `npx playwright test` (or pass one
+  spec path). Keep the E2E port overridable through `E2E_PORT`.
