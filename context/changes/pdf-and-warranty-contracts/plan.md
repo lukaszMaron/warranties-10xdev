@@ -373,20 +373,20 @@ Brak zmian schematu. Nowe pole `warnings` w odpowiedzi jest addytywne.
 
 #### Automated
 
-- [x] 4.1 Build frontendu przechodzi: `npm run build` w `frontend/`
+- [x] 4.1 Build frontendu przechodzi: `npm run build` w `frontend/` — f3837d6
 
 #### Manual
 
-- [x] 4.2 Zapis z terminem przed zakupem pokazuje ostrzeżenie, a zakup jest zapisany
-- [x] 4.3 Data w podsumowaniu zapisu ma format zgodny z ustawieniami przeglądarki (np. `en-US` daje M/D/YYYY)
-- [x] 4.4 Stany na `frontend/src/pages/purchases/new-states.astro` nadal wyglądają poprawnie
+- [x] 4.2 Zapis z terminem przed zakupem pokazuje ostrzeżenie, a zakup jest zapisany — f3837d6
+- [x] 4.3 Data w podsumowaniu zapisu ma format zgodny z ustawieniami przeglądarki (np. `en-US` daje M/D/YYYY) — f3837d6
+- [x] 4.4 Stany na `frontend/src/pages/purchases/new-states.astro` nadal wyglądają poprawnie — f3837d6
 
 ### Phase 5: Aktualizacja test-plan.md
 
 #### Automated
 
-- [ ] 5.1 Cały zestaw przechodzi: `uv run pytest -q`
+- [x] 5.1 Cały zestaw przechodzi: `uv run pytest -q`
 
 #### Manual
 
-- [ ] 5.2 §3 i §6 wskazują istniejące pliki i nazwy testów
+- [x] 5.2 §3 i §6 wskazują istniejące pliki i nazwy testów

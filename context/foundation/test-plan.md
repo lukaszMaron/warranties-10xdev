@@ -49,7 +49,7 @@ Każda faza otwiera osobny change folder przez `/10x-new`. Status przesuwa się 
 
 | # | Phase name | Goal (one line) | Risks covered | Test types | Status | Change folder |
 |---|---|---|---|---|---|---|
-| 1 | PDF and warranty contracts | Udowodnić poprawność importu, ręcznych korekt oraz reguł dat niezależnie od implementacji. | #1, #4 | pytest unit + API integration | not started | — |
+| 1 | PDF and warranty contracts | Udowodnić poprawność importu, ręcznych korekt oraz reguł dat niezależnie od implementacji. | #1, #4 | pytest unit + API integration | done | `context/changes/pdf-and-warranty-contracts/` |
 | 2 | Safe persistence and recovery | Wykrywać niebezpieczne wejście, niespójny zapis oraz regresje odtwarzania profilu. | #2, #3, #5 | API/storage integration + manual restore smoke | not started | — |
 | 3 | Critical browser flow | Sprawdzić pełny przepływ przesłanie–korekta–zapis bez utraty wartości. | #1, #2 | Playwright e2e | not started | — |
 | 4 | Roadmap coverage and quality gates | Wymuszać bramki CI; dodać testy kontraktu search/dashboard w odpowiednich slice'ach, bez odblokowywania S-07 bez decyzji o progu. | #1–#6 | pytest + API integration + e2e + lint/typecheck/build gates | not started | — |
@@ -95,7 +95,7 @@ Instrukcje dodawania testów w tym projekcie. Wzorce zostaną uzupełnione w ko�
 
 - **Location**: `tests/`.
 - **Naming**: `test_<behavior>.py`.
-- **Reference test**: TBD — see §3 Phase 1 for PDF field extraction and correction behavior.
+- **Reference test**: `tests/test_pdf_extraction.py::test_purchase_date_formats_follow_owner_rules` (parametryzowane formaty dat przy DMY/MDY, oczekiwane wartości z decyzji właściciela) oraz `tests/test_warranty_calculation.py::test_manual_warranty_warnings_follow_purchase_type_estimate` (granice progu ostrzeżeń wg rodzaju zakupu).
 - **Run locally**: `uv run pytest tests/<test_file>.py`.
 
 ### 6.2 Adding an integration test
@@ -113,7 +113,7 @@ Instrukcje dodawania testów w tym projekcie. Wzorce zostaną uzupełnione w ko�
 ### 6.4 Adding a test for a new API endpoint
 
 - **Test type**: API integration, unless research proves a cheaper layer gives the same signal.
-- **Pattern**: TBD — see §3 Phase 2; assert response contract and persistent side effects.
+- **Pattern**: `tests/test_pdf_purchase_flow.py::test_api_persists_warranty_dates_and_returns_nonblocking_warnings` — tymczasowy profil przez `monkeypatch.setenv(storage.DATA_DIR_ENV, ...)`, asercja kontraktu odpowiedzi (status, `warnings`, daty) oraz wiersza odczytanego przez `ProfileStorage(data_root).connect()`. Dla zależności od czasu: `::test_api_warranty_end_is_inclusive_using_utc_clock` podmienia `api.utc_today`, a `::test_api_clock_uses_utc_date_when_device_is_already_on_next_day` podmienia `api.datetime`.
 - **Run locally**: `uv run pytest tests/<test_file>.py`.
 
 ## 7. What We Deliberately Don't Test
