@@ -354,13 +354,13 @@ Brak zmian schematu. Nowe pole `warnings` w odpowiedzi jest addytywne.
 
 #### Automated
 
-- [x] 2.1 Testy gwarancji przechodzą: `uv run pytest tests/test_warranty_calculation.py`
-- [x] 2.2 Testy przepływu zapisu przechodzą: `uv run pytest tests/test_pdf_purchase_flow.py`
-- [x] 2.3 Cały zestaw przechodzi: `uv run pytest -q`
+- [x] 2.1 Testy gwarancji przechodzą: `uv run pytest tests/test_warranty_calculation.py` — b705c82
+- [x] 2.2 Testy przepływu zapisu przechodzą: `uv run pytest tests/test_pdf_purchase_flow.py` — b705c82
+- [x] 2.3 Cały zestaw przechodzi: `uv run pytest -q` — b705c82
 
 #### Manual
 
-- [x] 2.4 Ręczne wywołanie zapisu (np. `/docs` FastAPI) z terminem przed zakupem zwraca 200 i czytelne ostrzeżenie
+- [x] 2.4 Ręczne wywołanie zapisu (np. `/docs` FastAPI) z terminem przed zakupem zwraca 200 i czytelne ostrzeżenie — b705c82
 
 ### Phase 3: Testy korekty przez API
 
