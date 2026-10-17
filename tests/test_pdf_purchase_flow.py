@@ -7,6 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from warranties_10xdev import api, purchases, storage
+from warranties_10xdev.pdf_extraction import PdfSuggestions
 from warranties_10xdev.purchases import (
     PurchaseInput,
     PurchaseSaveError,
@@ -300,6 +301,114 @@ def test_api_saves_corrected_values_and_private_pdf(
             (saved["purchase_id"],),
         ).fetchone() == ("Corrected after OCR",)
     assert (profile.documents_dir / saved["document_ref"]).read_bytes() == _pdf()
+
+
+_WRONG_SUGGESTIONS = PdfSuggestions(
+    product_name="OCR misread name",
+    purchase_date="2023-01-15",
+    seller="OCR seller",
+    payment_method="OCR payment",
+    warnings={},
+)
+_CORRECTED_FORM = {
+    "product_name": "Corrected drill",
+    "purchase_date": "2025-04-03",
+    "purchase_type": "private",
+    "seller": "Corrected shop",
+    "payment_method": "Card",
+    "warranty_end_date": "",
+}
+
+
+@pytest.mark.parametrize(
+    ("form_overrides", "expected_row", "expected_effective_end", "expected_status"),
+    [
+        pytest.param(
+            {},
+            ("Corrected drill", "2025-04-03", "private", "Corrected shop", "Card"),
+            "2027-04-03",
+            "active",
+            id="all-four-fields-corrected",
+        ),
+        pytest.param(
+            {"product_name": "  \tCorrected drill \n"},
+            ("Corrected drill", "2025-04-03", "private", "Corrected shop", "Card"),
+            "2027-04-03",
+            "active",
+            id="name-stripped",
+        ),
+        pytest.param(
+            {"seller": "", "payment_method": "   "},
+            ("Corrected drill", "2025-04-03", "private", None, None),
+            "2027-04-03",
+            "active",
+            id="cleared-optionals-empty-and-spaces-become-null",
+        ),
+        pytest.param(
+            {"seller": "  ", "payment_method": ""},
+            ("Corrected drill", "2025-04-03", "private", None, None),
+            "2027-04-03",
+            "active",
+            id="cleared-optionals-spaces-and-empty-become-null",
+        ),
+        pytest.param(
+            {"purchase_date": "2024-02-29", "purchase_type": "business"},
+            ("Corrected drill", "2024-02-29", "business", "Corrected shop", "Card"),
+            "2025-02-28",
+            "expired",
+            id="corrected-date-drives-business-estimate",
+        ),
+    ],
+)
+def test_api_saves_user_corrections_not_preview_suggestions_after_reopen(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    form_overrides: dict[str, str],
+    expected_row: tuple[object, ...],
+    expected_effective_end: str,
+    expected_status: str,
+) -> None:
+    # Preview only suggests; the saved row must hold the user's corrected form values.
+    data_root = tmp_path / "profile"
+    data_root.mkdir()
+    monkeypatch.setenv(storage.DATA_DIR_ENV, str(data_root))
+    monkeypatch.setattr(api, "utc_today", lambda: date(2026, 10, 17))
+    monkeypatch.setattr(api, "extract_pdf_suggestions", lambda pdf_bytes: _WRONG_SUGGESTIONS)
+
+    preview = client.post(
+        "/api/purchases/preview",
+        files={"file": ("invoice.pdf", _pdf(), "application/pdf")},
+    )
+    assert preview.status_code == 200
+    assert preview.json()["product_name"] == "OCR misread name"
+    assert preview.json()["seller"] == "OCR seller"
+
+    response = client.post(
+        "/api/purchases",
+        data={**_CORRECTED_FORM, **form_overrides},
+        files={"file": ("invoice.pdf", _pdf(), "application/pdf")},
+    )
+
+    assert response.status_code == 200
+    saved = response.json()
+    assert saved["effective_end_date"] == expected_effective_end
+    assert saved["date_basis"] == "estimate"
+    assert saved["status"] == expected_status
+
+    reopened = ProfileStorage(data_root)
+    with reopened.connect() as connection:
+        row = connection.execute(
+            "SELECT product_name, purchase_date, purchase_type, seller, payment_method, "
+            "warranty_end_date, document_ref FROM purchase WHERE purchase_id = ?",
+            (saved["purchase_id"],),
+        ).fetchone()
+    assert row == (*expected_row, None, saved["document_ref"])
+    document_ref = saved["document_ref"]
+    assert Path(document_ref).name == document_ref
+    assert not Path(document_ref).is_absolute()
+    assert "/" not in document_ref and "\\" not in document_ref
+    assert (reopened.documents_dir / document_ref).read_bytes() == _pdf()
+    assert not list(reopened.data_root.glob(".purchase-*.tmp"))
 
 
 def test_api_accepts_manual_completion_without_preview(

@@ -366,8 +366,8 @@ Brak zmian schematu. Nowe pole `warnings` w odpowiedzi jest addytywne.
 
 #### Automated
 
-- [ ] 3.1 Test korekty przechodzi: `uv run pytest tests/test_pdf_purchase_flow.py`
-- [ ] 3.2 Cały zestaw przechodzi: `uv run pytest -q`
+- [x] 3.1 Test korekty przechodzi: `uv run pytest tests/test_pdf_purchase_flow.py`
+- [x] 3.2 Cały zestaw przechodzi: `uv run pytest -q`
 
 ### Phase 4: Minimalny frontend
 
