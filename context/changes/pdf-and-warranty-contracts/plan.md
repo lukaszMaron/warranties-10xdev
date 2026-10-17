@@ -385,8 +385,8 @@ Brak zmian schematu. Nowe pole `warnings` w odpowiedzi jest addytywne.
 
 #### Automated
 
-- [x] 5.1 Cały zestaw przechodzi: `uv run pytest -q`
+- [x] 5.1 Cały zestaw przechodzi: `uv run pytest -q` — f5b0e5a
 
 #### Manual
 
-- [x] 5.2 §3 i §6 wskazują istniejące pliki i nazwy testów
+- [x] 5.2 §3 i §6 wskazują istniejące pliki i nazwy testów — f5b0e5a

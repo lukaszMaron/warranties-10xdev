@@ -1,7 +1,7 @@
 ---
 change_id: pdf-and-warranty-contracts
 title: PDF and warranty contracts
-status: implementing
+status: implemented
 created: 2026-10-17
 updated: 2026-10-17
 archived_at: null
