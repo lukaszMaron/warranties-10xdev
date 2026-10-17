@@ -11,7 +11,7 @@ from typing import Any, Literal
 
 import pypdfium2 as pdfium
 
-from warranties_10xdev.storage import MAX_PDF_SIZE_BYTES, validate_pdf_size
+from warranties_10xdev.storage import MAX_PDF_SIZE_BYTES
 
 OCR_LANGUAGE = "pol+eng"
 OCR_TIMEOUT_SECONDS = 60

@@ -10,7 +10,6 @@ from typing import Literal
 import pypdfium2 as pdfium
 
 from warranties_10xdev.storage import (
-    MAX_PDF_SIZE_BYTES,
     ProfileStorage,
     validate_pdf_size,
 )

@@ -18,7 +18,7 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["httpx2>=0.1.0", "pytest>=8.0"]
+dev = ["httpx2>=0.1.0", "pytest>=8.0", "pre-commit>=4.0,<5", "ruff>=0.14,<1"]
 
 [project.scripts]
 warranties-10xdev = "warranties_10xdev:main"
@@ -26,3 +26,14 @@ warranties-10xdev = "warranties_10xdev:main"
 [build-system]
 requires = ["uv_build>=0.12.22,<0.13.0"]
 build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+python_files = ["test_*.py", "*_test.py", "agent-hooks.test.py"]
+addopts = "--import-mode=importlib"
+
+[tool.ruff]
+target-version = "py311"
+include = ["src/**/*.py", "tests/**/*.py", "scripts/**/*.py"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]

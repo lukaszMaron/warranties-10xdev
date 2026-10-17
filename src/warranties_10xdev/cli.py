@@ -4,7 +4,6 @@ import sys
 from collections.abc import Sequence
 
 from warranties_10xdev.backup import (
-    BackupConfigurationError,
     BackupError,
     BackupSettings,
     backup_to_s3,

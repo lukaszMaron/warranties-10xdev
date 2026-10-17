@@ -1,0 +1,24 @@
+minimum_pre_commit_version: "4.0.0"
+default_stages: [pre-commit]
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-staged
+        name: Ruff (staged Python)
+        entry: node scripts/python_quality.mjs lint
+        language: system
+        files: ^(src|tests|scripts)/.*\.py$
+        types: [python]
+      - id: eslint-staged
+        name: ESLint (staged frontend)
+        entry: node scripts/lint_frontend.mjs
+        language: system
+        files: ^frontend/(src/.*\.(astro|[cm]?js|jsx|tsx?)|astro\.config\.mjs|eslint\.config\.mjs)$
+        types: [file]
+      - id: pytest-staged
+        name: pytest (related to staged Python)
+        entry: node scripts/python_quality.mjs tests
+        language: system
+        files: ^(src|tests|scripts)/.*\.py$
+        types: [python]
+        require_serial: true

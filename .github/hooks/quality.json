@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "hooks": {
+    "postToolUse": [
+      {
+        "type": "command",
+        "command": "node -e \"const c=require('node:child_process'),p=require('node:path');const r=c.execFileSync('git',['rev-parse','--show-toplevel'],{encoding:'utf8'}).trim();const s=c.spawnSync(process.execPath,[p.join(r,'.github','hooks','quality.mjs'),'edit'],{stdio:'inherit'});if(s.error)console.error(s.error.message);process.exit(s.status??1)\"",
+        "timeoutSec": 30
+      }
+    ],
+    "agentStop": [
+      {
+        "type": "command",
+        "command": "node -e \"const c=require('node:child_process'),p=require('node:path');const r=c.execFileSync('git',['rev-parse','--show-toplevel'],{encoding:'utf8'}).trim();const s=c.spawnSync(process.execPath,[p.join(r,'.github','hooks','quality.mjs'),'stop'],{stdio:'inherit'});if(s.error)console.error(s.error.message);process.exit(s.status??1)\"",
+        "timeoutSec": 120
+      }
+    ]
+  }
+}
